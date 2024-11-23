@@ -5,7 +5,6 @@ const app = express()
 
 app.use(express.json())
 app.use(userRouter)
-app.use(songRouter);
 app.set('trust proxy', 1);
 
 module.exports = app
