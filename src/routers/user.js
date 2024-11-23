@@ -16,10 +16,6 @@ const {
 
 router.post('/user/register', async (req, res) => {
     try {
-        if (restrictedDeviceIds.includes(req.body.deviceId)) {
-            return res.status(403).send(errorResponse('Bu cihazın kaydı engellenmiştir.', 403));
-        }
-
         const existingUser = await User.findOne({ deviceId: req.body.deviceId });
         if (existingUser) {
             return res.status(400).send(errorResponse('Device ID already exists. User registration failed.', 400));
@@ -49,9 +45,6 @@ router.post('/user/register', async (req, res) => {
 
 router.post('/user/login', async (req, res) => {
     try {
-        if (restrictedDeviceIds.includes(req.body.deviceId)) {
-            return res.status(403).send(errorResponse('Bu cihazın girişi engellenmiştir.', 403));
-        }
         const user = await User.findByCredentials(req.body.deviceId);
         const token = await user.generateAuthToken();
         res.status(200).send(successResponse('Login successful.', { user, token }, 200));
