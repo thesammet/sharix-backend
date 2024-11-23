@@ -82,8 +82,23 @@ categorySchema.statics.getSubcategories = async function (parentId) {
 // **Middleware (save ve remove işlemleri)**
 categorySchema.pre('save', async function (next) {
     const category = this;
+
     if (!category.slug || category.isModified('name')) {
-        category.generateSlug();
+        let baseSlug = category.name
+            .toLowerCase()
+            .replace(/ /g, '-') // Boşlukları tire ile değiştir
+            .replace(/[^\w-]+/g, ''); // Özel karakterleri kaldır
+
+        let slug = baseSlug;
+        let count = 0;
+
+        // Benzersizliği kontrol et
+        while (await Category.findOne({ slug })) {
+            count++;
+            slug = `${baseSlug}-${count}`; // Benzersiz bir slug oluştur
+        }
+
+        category.slug = slug;
     }
 
     next();
