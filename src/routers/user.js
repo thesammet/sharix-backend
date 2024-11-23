@@ -1,7 +1,6 @@
 const express = require('express');
 const router = new express.Router();
 const User = require('../models/user');
-const Complaint = require('../models/complaint');
 const FailedTransaction = require('../models/failed_transaction');
 const SuccessfulTransaction = require('../models/successfull_transaction');
 const auth = require('../middleware/auth');
@@ -90,15 +89,6 @@ router.delete('/user/me', auth, async (req, res) => {
     }
 });
 
-router.post('/user/create-complaint', auth, async (req, res) => {
-    const complaint = new Complaint({ ...req.body, complainantUser: req.user._id });
-    try {
-        await complaint.save();
-        res.status(201).send(successResponse('Complaint created successfully.', { complaint }, 201));
-    } catch (error) {
-        res.status(400).send(errorResponse(error.toString(), 400));
-    }
-});
 
 router.post('/user/purchase-credits-v3', auth, async (req, res) => {
     try {
