@@ -8,7 +8,7 @@ const categorySchema = new mongoose.Schema({
         unique: true,
         trim: true,
         validate(name) {
-            if (name.length < 3 || name.length > 50) {
+            if (name.length < 1 || name.length > 50) {
                 throw new Error('Category name must be between 3 and 50 characters!');
             }
         },
