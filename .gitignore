@@ -1,0 +1,5 @@
+config/
+*.env
+config/dev.env
+/node_modules
+/google_service_account_key.json
