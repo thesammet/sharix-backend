@@ -107,7 +107,7 @@ router.post('/user/create-complaint', auth, async (req, res) => {
     }
 });
 
-router.post('/user/purchase-credits-v3', auth, purchaseCreditsLimiter, async (req, res) => {
+router.post('/user/purchase-credits-v3', auth, async (req, res) => {
     try {
         console.log('POST /user/purchase-credits-v3 called');
         console.log('Request body:', req.body);
