@@ -32,7 +32,7 @@ router.post('/templates', auth, async (req, res) => {
 });
 
 // **Tüm Şablonları Listeleme**
-router.get('/templates', async (req, res) => {
+router.get('/templates', auth, async (req, res) => {
     try {
         const templates = await Template.find({ isGlobal: true }).populate('category', 'name');
         res.status(200).send(successResponse('Templates retrieved successfully.', templates, 200));
@@ -42,7 +42,7 @@ router.get('/templates', async (req, res) => {
 });
 
 // **Kategoriye Göre Şablonları Listeleme**
-router.get('/templates/category/:categoryId', async (req, res) => {
+router.get('/templates/category/:categoryId', auth, async (req, res) => {
     const { categoryId } = req.params;
 
     try {
@@ -103,7 +103,7 @@ router.delete('/templates/:templateId', auth, async (req, res) => {
 });
 
 // **Paylaşım Sayısını Artırma**
-router.patch('/templates/:templateId/share', async (req, res) => {
+router.patch('/templates/:templateId/share', auth, async (req, res) => {
     try {
         const template = await Template.findById(req.params.templateId);
         if (!template) {
