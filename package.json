@@ -1,7 +1,7 @@
 {
-  "name": "sonora-backend",
+  "name": "sharix-backend",
   "version": "1.0.0",
-  "description": "Sonora music generator backend application",
+  "description": "Sharix Quick Messages Hub Backend",
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thesammet/sonora-backend.git"
+    "url": "git+https://github.com/thesammet/Sharix-backend.git"
   },
   "author": "Abdu Samed Akgul",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/thesammet/sonora-backend/issues"
+    "url": "https://github.com/thesammet/Sharix-backend/issues"
   },
-  "homepage": "https://github.com/thesammet/sonora-backend#readme",
+  "homepage": "https://github.com/thesammet/Sharix-backend#readme",
   "devDependencies": {
     "env-cmd": "^10.1.0",
     "jest": "^29.2.0",
@@ -37,7 +37,6 @@
     "mongodb": "^4.10.0",
     "mongoose": "^6.6.5",
     "multer": "^1.4.5-lts.1",
-    "node-cron": "^3.0.2",
     "node-fetch": "^2.6.6",
     "path": "^0.12.7",
     "request-promise": "^4.2.6",

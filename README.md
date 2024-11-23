@@ -1,2 +1,3 @@
-# sonora-backend
- Sonora music generator application backend project
+# Sharix-backend
+
+Sharix Quick Messages Hub Backend
