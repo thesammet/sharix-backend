@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const { errorResponse } = require('../utils/response');
 
 const auth = async (req, res, next) => {
     try {
@@ -15,7 +16,7 @@ const auth = async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
-        res.status(401).send({ error: 'Please authenticate.' });
+        res.status(401).send(errorResponse('Please authenticate.', 401));
     }
 };
 
