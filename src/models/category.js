@@ -83,9 +83,10 @@ categorySchema.statics.getSubcategories = async function (parentId) {
 // **Middleware (save ve remove işlemleri)**
 categorySchema.pre('save', async function (next) {
     const category = this;
-    if (category.isModified('name')) {
-        category.generateSlug(); // İsim değişirse slug yeniden oluşturulur
+    if (!category.slug || category.isModified('name')) {
+        category.generateSlug();
     }
+
     next();
 });
 
