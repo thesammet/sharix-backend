@@ -20,6 +20,10 @@ router.post('/user/register', async (req, res) => {
             return res.status(400).send(errorResponse('Device ID already exists. User registration failed.', 400));
         }
 
+        const platform = req.body.platform || 'android';
+        const firToken = req.body.firToken || "";
+        const language = req.body.language || "unk";
+        const region = req.body.region || "UNK";
         const generatedUsername = generateRandomUsername();
 
         const user = new User({
