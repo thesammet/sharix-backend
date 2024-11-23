@@ -120,11 +120,6 @@ router.patch('/templates/:templateId/share', auth, async (req, res) => {
 
 router.post('/templates/bulk-upload', auth, async (req, res) => {
     try {
-        // Admin kontrolü
-        if (!req.user.isAdmin) {
-            return res.status(403).send(errorResponse('Access denied. Only admins can perform this action.', 403));
-        }
-
         // Gelen şablonları al
         const templates = req.body.templates;
 
