@@ -20,7 +20,7 @@ router.post("/message/generate", auth, async (req, res) => {
     }
 
     if (!mode) {
-        return res.status(400).send(errorResponse("Mode is required to generate a message.", 400));
+        return res.status(400).send({ error: "Mode is required to generate a message." });
     }
 
     try {
@@ -32,7 +32,9 @@ router.post("/message/generate", auth, async (req, res) => {
 
             case "copilot message-by-category":
                 if (!category) {
-                    return res.status(400).send(errorResponse("Category is required for this mode.", 400));
+                    return res
+                        .status(400)
+                        .send({ error: "Category is required for this mode." });
                 }
                 instruction = `Generate a message suitable for the '${category}' category in ${language}.`;
                 break;
@@ -50,10 +52,10 @@ router.post("/message/generate", auth, async (req, res) => {
                 break;
 
             default:
-                return res.status(400).send(errorResponse("Invalid mode specified.", 400));
+                return res.status(400).send({ error: "Invalid mode specified." });
         }
 
-        const response = await client.chat.completions.create({
+        const response = await openai.createChatCompletion({
             model: "gpt-4-turbo",
             messages: [
                 { role: "system", content: "You are a helpful assistant for generating personalized messages." },
@@ -63,18 +65,18 @@ router.post("/message/generate", auth, async (req, res) => {
             temperature: 0.7,
         });
 
-        res.status(200).send(successResponse("Message generated successfully.", {
-            original: message || "",
-            generated: response.choices[0].message.content.trim(),
-            mode,
-            category: category || null,
-            language,
-        }, 200));
+        // Sadece üretilen mesajı döndür
+        const generatedMessage = response.data.choices[0].message.content.trim();
+
+        res.status(200).send({
+            message: "Message generated successfully.",
+            data: generatedMessage, // Sadece içeriği döndürüyoruz
+        });
     } catch (error) {
-        console.error("OpenAI API Error:", error);
-        res.status(500).send(errorResponse("Failed to generate the message.", 500));
+        res.status(500).send({ error: error.toString() });
     }
 });
+
 
 // Mesaj geçmişi
 router.get("/messages", auth, async (req, res) => {
