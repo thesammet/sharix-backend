@@ -39,6 +39,10 @@ const templateSchema = new mongoose.Schema(
             enum: ['left', 'center', 'right'],
             default: 'center', // Metin hizalaması
         },
+        textColor: {
+            type: String,
+            default: "#000000",
+        },
         isGlobal: {
             type: Boolean,
             default: true, // Şablon tüm kullanıcılara açık mı?

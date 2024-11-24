@@ -7,7 +7,7 @@ const { successResponse, errorResponse } = require('../utils/response');
 
 // **Şablon Oluşturma**
 router.post('/templates', auth, async (req, res) => {
-    const { content, category, backgroundImage, fontStyle, fontSize, textAlign, isGlobal, lang } = req.body;
+    const { content, category, backgroundImage, fontStyle, fontSize, textAlign, textColor, isGlobal, lang } = req.body;
 
     try {
         const categoryExists = await Category.findById(category);
@@ -23,8 +23,9 @@ router.post('/templates', auth, async (req, res) => {
             fontStyle,
             fontSize,
             textAlign,
+            textColor,
             isGlobal,
-            isCustom: req.user.role !== 'admin', // Admin değilse isCustom true
+            isCustom: false, /* req.user.role !== 'admin', // Admin değilse isCustom true */
             lang,
         });
 
@@ -84,7 +85,7 @@ router.get('/templates/category/:categoryId', auth, async (req, res) => {
 // **Şablon Güncelleme**
 router.patch('/templates/:templateId', auth, async (req, res) => {
     const updates = Object.keys(req.body);
-    const allowedUpdates = ['content', 'icon', 'isGlobal', 'lang', 'backgroundImage', 'fontStyle', 'fontSize', 'textAlign'];
+    const allowedUpdates = ['content', 'icon', 'isGlobal', 'lang', 'backgroundImage', 'fontStyle', 'fontSize', 'textAlign', 'textColor'];
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
     if (!isValidOperation) {
@@ -154,7 +155,7 @@ router.post('/templates/bulk-upload', auth, async (req, res) => {
 
         const createdTemplates = [];
         for (const templateData of templates) {
-            const { content, category, icon, isGlobal, lang, backgroundImage, fontStyle, fontSize, textAlign } = templateData;
+            const { content, category, icon, isGlobal, lang, backgroundImage, fontStyle, fontSize, textAlign, textColor } = templateData;
 
             if (!lang) {
                 return res.status(400).send(errorResponse('Language (lang) is required for all templates.', 400));
@@ -180,6 +181,7 @@ router.post('/templates/bulk-upload', auth, async (req, res) => {
                 fontStyle,
                 fontSize,
                 textAlign,
+                textColor
             });
 
             await template.save();
