@@ -48,11 +48,9 @@ router.post('/categories/bulk', auth, async (req, res) => {
         for (const category of categories) {
             // Slug oluşturma işlemi
             let baseSlug = category.name
-                .toLowerCase()
-                .normalize('NFD') // Unicode parçalama
-                .replace(/[\u0300-\u036f]/g, '') // Aksan işaretlerini kaldır
+                .toLowerCase() // Küçük harfe çevir
                 .replace(/ /g, '-') // Boşlukları tire ile değiştir
-                .replace(/[^a-zA-Z0-9\u00C0-\u00FF-]/g, ''); // İngilizce olmayan karakterlere izin ver
+                .replace(/[^a-zA-Z0-9\u00C0-\u00FF-\u0100-\u017F]/g, ''); // Geçerli karakterleri koru
 
             if (category.parentCategory) {
                 const parent = await Category.findById(category.parentCategory);
@@ -64,15 +62,15 @@ router.post('/categories/bulk', auth, async (req, res) => {
             let slug = baseSlug;
             let count = 0;
 
-            // Benzersizliği kontrol et ve gerekirse slug'ı artır
-            while (await Category.findOne({ slug })) {
+            // Eğer aynı slug varsa bir sayı ekleyerek benzersiz hale getir
+            while (await Category.findOne({ slug }) && count === 0) {
                 count++;
-                slug = `${baseSlug}-${count}`;
+                slug = `${baseSlug}`;
             }
 
             validCategories.push({
                 ...category,
-                slug, // Slug'ı burada manuel oluşturuyoruz
+                slug, // Benzersiz slug
                 createdBy: req.user._id,
             });
         }
@@ -84,8 +82,6 @@ router.post('/categories/bulk', auth, async (req, res) => {
         res.status(400).send(errorResponse(error.message, 400));
     }
 });
-
-
 
 // Get all categories
 router.get('/categories', auth, async (req, res) => {

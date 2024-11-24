@@ -94,6 +94,7 @@ categorySchema.pre('save', async function (next) {
             .replace(/ /g, '-') // Boşlukları tire ile değiştir
             .replace(/[^a-zA-Z0-9\u00C0-\u00FF-]/g, ''); // İngilizce dışı Unicode karakterlere izin ver
 
+        // Üst kategori varsa, slug'ın önüne ekle
         if (category.parentCategory) {
             const parent = await mongoose.model('Category').findById(category.parentCategory);
             if (parent) {
@@ -104,7 +105,8 @@ categorySchema.pre('save', async function (next) {
         let slug = baseSlug;
         let count = 0;
 
-        while (await mongoose.model('Category').findOne({ slug })) {
+        // Aynı slug'a sahip başka bir kategori var mı kontrol et
+        while (await mongoose.model('Category').findOne({ slug, parentCategory: category.parentCategory })) {
             count++;
             slug = `${baseSlug}-${count}`;
         }
@@ -114,8 +116,6 @@ categorySchema.pre('save', async function (next) {
 
     next();
 });
-
-
 
 categorySchema.post('remove', async function (category) {
     await Category.updateMany({ parentCategory: category._id }, { parentCategory: null });
