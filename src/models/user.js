@@ -40,6 +40,19 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: 'UNK',
     },
+    // Yeni alanlar
+    selectedGroups: {
+        type: [String],
+        default: []
+    },
+    selectedMessageTypes: {
+        type: [String],
+        default: []
+    },
+    selectedPreferences: {
+        type: [String],
+        default: []
+    },
 }, {
     timestamps: true
 });

@@ -36,7 +36,7 @@ const templateSchema = new mongoose.Schema(
         },
         textAlign: {
             type: String,
-            enum: ['left', 'center', 'right'],
+            enum: ['left', 'center', 'right', 'top', 'bottom'],
             default: 'center', // Metin hizalaması
         },
         textColor: {

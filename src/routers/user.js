@@ -181,6 +181,24 @@ router.post('/user/purchase-credits-v3', auth, async (req, res) => {
     }
 });
 
+router.patch('/user/preferences', auth, async (req, res) => {
+    try {
+        const { selectedGroups, selectedMessageTypes, selectedPreferences } = req.body;
 
+        if (!selectedGroups || !selectedMessageTypes || !selectedPreferences) {
+            return res.status(400).send(errorResponse('All preferences must be provided.', 400));
+        }
+
+        req.user.selectedGroups = selectedGroups;
+        req.user.selectedMessageTypes = selectedMessageTypes;
+        req.user.selectedPreferences = selectedPreferences;
+
+        await req.user.save();
+
+        res.status(200).send(successResponse('Preferences updated successfully.', req.user, 200));
+    } catch (error) {
+        res.status(400).send(errorResponse(error.toString(), 400));
+    }
+});
 
 module.exports = router;
