@@ -55,7 +55,7 @@ router.post("/message/generate", auth, async (req, res) => {
                 return res.status(400).send({ error: "Invalid mode specified." });
         }
 
-        const response = await openai.createChatCompletion({
+        const response = await client.chat.completions.create({
             model: "gpt-4-turbo",
             messages: [
                 { role: "system", content: "You are a helpful assistant for generating personalized messages." },
