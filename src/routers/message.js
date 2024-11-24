@@ -116,7 +116,7 @@ router.post("/message/random", auth, async (req, res) => {
             model: "gpt-4-turbo",
             messages: [{ role: "user", content: instruction }],
             max_tokens: 100,
-            temperature: 0.9,
+            temperature: 0.7,
         });
 
         res.status(200).send(successResponse("Random message generated successfully.", {
