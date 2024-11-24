@@ -67,11 +67,7 @@ router.post("/message/generate", auth, async (req, res) => {
         console.log(response);
         // Sadece üretilen mesajı döndür
         const generatedMessage = response.choices[0].message.content.trim();
-
-        res.status(200).send({
-            message: "Message generated successfully.",
-            data: generatedMessage, // Sadece içeriği döndürüyoruz
-        });
+        res.status(200).send(successResponse("Message generated successfully.", generatedMessage, 200));
     } catch (error) {
         res.status(500).send({ error: error.toString() });
     }
