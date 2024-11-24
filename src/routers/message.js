@@ -27,7 +27,7 @@ router.post("/message/generate", auth, async (req, res) => {
         let instruction;
         switch (mode) {
             case "copilot random-message":
-                instruction = `Generate a random thoughtful message in ${language} without any additional explanation or context.`;
+                instruction = `Generate a random thoughtful message in ${language} without any additional explanation, context or subject.`;
                 break;
 
             case "copilot message-by-category":
@@ -106,7 +106,7 @@ router.get("/messages/category/:category", auth, async (req, res) => {
 // Mesaj oluşturma: rastgele
 router.post("/message/random", auth, async (req, res) => {
     try {
-        const instruction = `Generate a random message in ${req.language || "en"} without any additional explanation or context.`;
+        const instruction = `Generate a random message in ${req.language || "en"} without any additional explanation, context or subject.`;
         const response = await client.chat.completions.create({
             model: "gpt-4-turbo",
             messages: [{ role: "user", content: instruction }],
