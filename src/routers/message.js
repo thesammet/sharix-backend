@@ -2,14 +2,13 @@ const express = require("express");
 const router = new express.Router();
 const auth = require("../middleware/auth");
 const Message = require("../models/message");
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 const { successResponse, errorResponse } = require("../utils/response");
 
-// OpenAI yapılandırması
-const configuration = new Configuration({
+// OpenAI istemcisi yapılandırması
+const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 // Mesaj oluşturma
 router.post("/message/generate", auth, async (req, res) => {
@@ -21,7 +20,7 @@ router.post("/message/generate", auth, async (req, res) => {
     }
 
     if (!mode) {
-        return res.status(400).send({ error: "Mode is required to generate a message." });
+        return res.status(400).send(errorResponse("Mode is required to generate a message.", 400));
     }
 
     try {
@@ -33,9 +32,7 @@ router.post("/message/generate", auth, async (req, res) => {
 
             case "copilot message-by-category":
                 if (!category) {
-                    return res
-                        .status(400)
-                        .send({ error: "Category is required for this mode." });
+                    return res.status(400).send(errorResponse("Category is required for this mode.", 400));
                 }
                 instruction = `Generate a message suitable for the '${category}' category in ${language}.`;
                 break;
@@ -53,10 +50,10 @@ router.post("/message/generate", auth, async (req, res) => {
                 break;
 
             default:
-                return res.status(400).send({ error: "Invalid mode specified." });
+                return res.status(400).send(errorResponse("Invalid mode specified.", 400));
         }
 
-        const response = await openai.createChatCompletion({
+        const response = await client.chat.completions.create({
             model: "gpt-4-turbo",
             messages: [
                 { role: "system", content: "You are a helpful assistant for generating personalized messages." },
@@ -66,32 +63,64 @@ router.post("/message/generate", auth, async (req, res) => {
             temperature: 0.7,
         });
 
-
-        res.status(200).send({
-            message: "Message generated successfully.",
-            data: {
-                original: message || "",
-                generated: response.data.choices[0].text.trim(),
-                mode,
-                category: category || null,
-                language,
-            },
-        });
+        res.status(200).send(successResponse("Message generated successfully.", {
+            original: message || "",
+            generated: response.choices[0].message.content.trim(),
+            mode,
+            category: category || null,
+            language,
+        }, 200));
     } catch (error) {
-        res.status(500).send({ error: error.toString() });
+        console.error("OpenAI API Error:", error);
+        res.status(500).send(errorResponse("Failed to generate the message.", 500));
     }
 });
 
+// Mesaj geçmişi
 router.get("/messages", auth, async (req, res) => {
     try {
-        const messages = await Message.find({ userId: req.user._id }).sort({
-            createdAt: -1,
-        });
-        res
-            .status(200)
-            .send(successResponse("Messages retrieved successfully.", messages, 200));
+        const messages = await Message.find({ userId: req.user._id }).sort({ createdAt: -1 });
+        res.status(200).send(successResponse("Messages retrieved successfully.", messages, 200));
     } catch (error) {
         res.status(500).send(errorResponse(error.toString(), 500));
+    }
+});
+
+// Yeni özellik: mesajları kategoriye göre listele
+router.get("/messages/category/:category", auth, async (req, res) => {
+    try {
+        const { category } = req.params;
+        const messages = await Message.find({
+            userId: req.user._id,
+            category,
+        }).sort({ createdAt: -1 });
+
+        if (!messages.length) {
+            return res.status(404).send(errorResponse("No messages found for this category.", 404));
+        }
+
+        res.status(200).send(successResponse("Messages retrieved successfully by category.", messages, 200));
+    } catch (error) {
+        res.status(500).send(errorResponse(error.toString(), 500));
+    }
+});
+
+// Mesaj oluşturma: rastgele
+router.post("/message/random", auth, async (req, res) => {
+    try {
+        const instruction = `Generate a random message in ${req.language || "en"}.`;
+        const response = await client.chat.completions.create({
+            model: "gpt-4-turbo",
+            messages: [{ role: "user", content: instruction }],
+            max_tokens: 100,
+            temperature: 0.9,
+        });
+
+        res.status(200).send(successResponse("Random message generated successfully.", {
+            generated: response.choices[0].message.content.trim(),
+        }, 200));
+    } catch (error) {
+        res.status(500).send(errorResponse("Failed to generate a random message.", 500));
     }
 });
 
