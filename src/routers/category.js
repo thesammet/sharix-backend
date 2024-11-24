@@ -7,11 +7,15 @@ const { successResponse, errorResponse } = require('../utils/response');
 // Create a new category
 router.post('/categories', auth, async (req, res) => {
     try {
-        const { name, description, parentCategory, isGlobal, icon } = req.body;
+        const { name, description, parentCategory, isGlobal, icon, lang } = req.body;
 
         // Ensure required fields are provided
         if (!name) {
             return res.status(400).send(errorResponse('Category name is required.', 400));
+        }
+
+        if (!lang) {
+            return res.status(400).send(errorResponse('Language (lang) is required.', 400));
         }
 
         const category = new Category({
@@ -20,6 +24,7 @@ router.post('/categories', auth, async (req, res) => {
             parentCategory: parentCategory || null,
             isGlobal: isGlobal ?? true,
             icon,
+            lang,
             createdBy: req.user._id,
         });
 
@@ -45,6 +50,7 @@ router.post('/categories/bulk', auth, async (req, res) => {
             parentCategory: category.parentCategory || null,
             isGlobal: category.isGlobal ?? true,
             icon: category.icon || '',
+            lang: category.lang || 'en', // Default language is 'en'
             createdBy: req.user._id,
         }));
 
@@ -59,7 +65,8 @@ router.post('/categories/bulk', auth, async (req, res) => {
 // Get all categories
 router.get('/categories', auth, async (req, res) => {
     try {
-        const categories = await Category.find();
+        const lang = req.body.lang || 'en'; // Filter by language
+        const categories = await Category.find({ lang });
         res.status(200).send(successResponse('Categories retrieved successfully.', categories, 200));
     } catch (error) {
         res.status(500).send(errorResponse(error.toString(), 500));
@@ -84,7 +91,7 @@ router.get('/categories/:id', auth, async (req, res) => {
 // Update a category
 router.patch('/categories/:id', auth, async (req, res) => {
     const updates = Object.keys(req.body);
-    const allowedUpdates = ['name', 'description', 'parentCategory', 'isGlobal', 'icon'];
+    const allowedUpdates = ['name', 'description', 'parentCategory', 'isGlobal', 'icon', 'lang'];
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
     if (!isValidOperation) {
@@ -129,7 +136,8 @@ router.delete('/categories/:id', auth, async (req, res) => {
 // Get subcategories of a category
 router.get('/categories/:id/subcategories', auth, async (req, res) => {
     try {
-        const subcategories = await Category.find({ parentCategory: req.params.id });
+        const lang = req.body.lang || 'en'; // Filter by language
+        const subcategories = await Category.find({ parentCategory: req.params.id, lang });
 
         if (subcategories.length === 0) {
             return res.status(404).send(errorResponse('No subcategories found for this category.', 404));

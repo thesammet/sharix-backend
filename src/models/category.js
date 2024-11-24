@@ -5,7 +5,6 @@ const categorySchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        unique: true,
         trim: true,
         validate(name) {
             if (name.length < 1 || name.length > 50) {
@@ -33,6 +32,13 @@ const categorySchema = new mongoose.Schema({
         type: Boolean,
         default: true, // Varsayılan olarak herkese açık
     },
+    lang: {
+        type: String,
+        required: true,
+        trim: true,
+        enum: ['en', 'tr', 'es', 'de', 'fr'], // Geçerli diller
+        default: 'en', // Varsayılan dil
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -46,11 +52,10 @@ const categorySchema = new mongoose.Schema({
     timestamps: true, // Oluşturma ve güncelleme zamanlarını otomatik olarak ekler
 });
 
-// **Örnek Metotlar**
+// **Metotlar ve Middleware**
 categorySchema.methods.toJSON = function () {
     const category = this;
     const categoryObject = category.toObject();
-
     delete categoryObject.__v; // Mongoose versiyonunu kaldır
     return categoryObject;
 };
@@ -63,7 +68,6 @@ categorySchema.methods.generateSlug = function () {
         .replace(/[^\w-]+/g, ''); // İsme göre slug oluştur
 };
 
-// **Statik Metotlar**
 categorySchema.statics.findBySlugOrId = async function (identifier) {
     const category = await this.findOne({
         $or: [{ slug: identifier }, { _id: identifier }],
@@ -79,7 +83,7 @@ categorySchema.statics.getSubcategories = async function (parentId) {
     return subcategories;
 };
 
-// **Middleware (save ve remove işlemleri)**
+// Benzersiz slug oluşturma işlemi
 categorySchema.pre('save', async function (next) {
     const category = this;
 
@@ -92,10 +96,9 @@ categorySchema.pre('save', async function (next) {
         let slug = baseSlug;
         let count = 0;
 
-        // Benzersizliği kontrol et
         while (await Category.findOne({ slug })) {
             count++;
-            slug = `${baseSlug}-${count}`; // Benzersiz bir slug oluştur
+            slug = `${baseSlug}-${count}`;
         }
 
         category.slug = slug;
@@ -105,7 +108,6 @@ categorySchema.pre('save', async function (next) {
 });
 
 categorySchema.post('remove', async function (category) {
-    // Bu kategorinin altındaki kategorilerin parentCategory'sini null yap
     await Category.updateMany({ parentCategory: category._id }, { parentCategory: null });
 });
 
