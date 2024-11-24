@@ -83,20 +83,29 @@ categorySchema.statics.getSubcategories = async function (parentId) {
     return subcategories;
 };
 
-// Benzersiz slug oluşturma işlemi
 categorySchema.pre('save', async function (next) {
     const category = this;
 
+    // Eğer `name` değişmişse veya `slug` henüz oluşturulmamışsa
     if (!category.slug || category.isModified('name')) {
         let baseSlug = category.name
             .toLowerCase()
             .replace(/ /g, '-') // Boşlukları tire ile değiştir
             .replace(/[^\w-]+/g, ''); // Özel karakterleri kaldır
 
+        // Eğer bir üst kategori varsa, onun slug'ını ekle
+        if (category.parentCategory) {
+            const parent = await mongoose.model('Category').findById(category.parentCategory);
+            if (parent) {
+                baseSlug = `${parent.slug}-${baseSlug}`;
+            }
+        }
+
         let slug = baseSlug;
         let count = 0;
 
-        while (await Category.findOne({ slug })) {
+        // Benzersizliği kontrol et ve gerekirse slug'ı artır
+        while (await mongoose.model('Category').findOne({ slug })) {
             count++;
             slug = `${baseSlug}-${count}`;
         }
@@ -106,6 +115,7 @@ categorySchema.pre('save', async function (next) {
 
     next();
 });
+
 
 categorySchema.post('remove', async function (category) {
     await Category.updateMany({ parentCategory: category._id }, { parentCategory: null });
