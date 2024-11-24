@@ -12,7 +12,7 @@ const client = new OpenAI({
 
 // Mesaj oluşturma
 router.post("/message/generate", auth, async (req, res) => {
-    const { message, mode, category } = req.body;
+    const { message, mode, category, tone } = req.body; // `tone` parametresini ekledik
     let language = req.language;
 
     if (language === "unk") {
@@ -27,7 +27,7 @@ router.post("/message/generate", auth, async (req, res) => {
         let instruction;
         switch (mode) {
             case "copilot random-message":
-                instruction = `Generate a random thoughtful message in ${language} without any additional explanation, context or subject. Only message content is needed.`;
+                instruction = `Generate a random thoughtful message in ${language} without any additional explanation, context, or subject. Only message content is needed.`;
                 break;
 
             case "copilot message-by-category":
@@ -48,7 +48,12 @@ router.post("/message/generate", auth, async (req, res) => {
                 break;
 
             case "copilot change-tone":
-                instruction = `Change the tone of the following message to be more formal in ${language}: "${message}".`;
+                if (!tone) {
+                    return res
+                        .status(400)
+                        .send({ error: "Tone is required for change-tone mode." });
+                }
+                instruction = `Change the tone of the following message to be more ${tone} in ${language}: "${message}".`;
                 break;
 
             default:
@@ -64,7 +69,7 @@ router.post("/message/generate", auth, async (req, res) => {
             max_tokens: 100,
             temperature: 0.7,
         });
-        console.log(response);
+
         // Sadece üretilen mesajı döndür
         const generatedMessage = response.choices[0].message.content.trim();
         res.status(200).send(successResponse("Message generated successfully.", generatedMessage, 200));
