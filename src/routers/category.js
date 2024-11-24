@@ -38,29 +38,49 @@ router.post('/categories', auth, async (req, res) => {
 // Create multiple categories in bulk
 router.post('/categories/bulk', auth, async (req, res) => {
     try {
-        const categories = req.body.categories; // Expecting an array of category objects
+        const categories = req.body.categories;
         if (!categories || !Array.isArray(categories) || categories.length === 0) {
             return res.status(400).send(errorResponse('Categories array is required and must not be empty.', 400));
         }
 
-        // Validate each category
-        const validCategories = categories.map((category) => ({
-            name: category.name,
-            description: category.description || '',
-            parentCategory: category.parentCategory || null,
-            isGlobal: category.isGlobal ?? true,
-            icon: category.icon || '',
-            lang: category.lang || 'en', // Default language is 'en'
-            createdBy: req.user._id,
-        }));
+        const validCategories = [];
+
+        for (const category of categories) {
+            let baseSlug = category.name
+                .toLowerCase()
+                .replace(/ /g, '-')
+                .replace(/[^\w-]+/g, '');
+
+            if (category.parentCategory) {
+                const parent = await Category.findById(category.parentCategory);
+                if (parent) {
+                    baseSlug = `${parent.slug}-${baseSlug}`;
+                }
+            }
+
+            let slug = baseSlug;
+            let count = 0;
+
+            while (await Category.findOne({ slug })) {
+                count++;
+                slug = `${baseSlug}-${count}`;
+            }
+
+            validCategories.push({
+                ...category,
+                slug, // Slug'ı burada manuel oluşturuyoruz
+                createdBy: req.user._id,
+            });
+        }
 
         const createdCategories = await Category.insertMany(validCategories);
 
         res.status(201).send(successResponse('Categories created successfully.', createdCategories, 201));
     } catch (error) {
-        res.status(400).send(errorResponse(error.toString(), 400));
+        res.status(400).send(errorResponse(error.message, 400));
     }
 });
+
 
 // Get all categories
 router.get('/categories', auth, async (req, res) => {
