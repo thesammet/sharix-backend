@@ -25,6 +25,7 @@ router.post('/categories', auth, async (req, res) => {
             isGlobal: isGlobal ?? true,
             icon,
             lang,
+            color,
             createdBy: req.user._id,
         });
 
@@ -112,7 +113,7 @@ router.get('/categories/:id', auth, async (req, res) => {
 // Update a category
 router.patch('/categories/:id', auth, async (req, res) => {
     const updates = Object.keys(req.body);
-    const allowedUpdates = ['name', 'description', 'parentCategory', 'isGlobal', 'icon', 'lang'];
+    const allowedUpdates = ['name', 'description', 'parentCategory', 'isGlobal', 'icon', 'lang', 'color'];
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
     if (!isValidOperation) {

@@ -32,6 +32,10 @@ const categorySchema = new mongoose.Schema({
         type: Boolean,
         default: true, // Varsayılan olarak herkese açık
     },
+    color: {
+        type: String,
+        default: "#000000", // Varsayılan rengi siyah
+    },
     lang: {
         type: String,
         required: true,
