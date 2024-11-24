@@ -86,14 +86,14 @@ categorySchema.statics.getSubcategories = async function (parentId) {
 categorySchema.pre('save', async function (next) {
     const category = this;
 
-    // Eğer `name` değişmişse veya `slug` henüz oluşturulmamışsa
     if (!category.slug || category.isModified('name')) {
+        // İngilizce olmayan karakterleri koruyan slug oluşturma
         let baseSlug = category.name
             .toLowerCase()
+            .trim()
             .replace(/ /g, '-') // Boşlukları tire ile değiştir
-            .replace(/[^\w-]+/g, ''); // Özel karakterleri kaldır
+            .replace(/[^a-zA-Z0-9\u00C0-\u00FF-]/g, ''); // İngilizce dışı Unicode karakterlere izin ver
 
-        // Eğer bir üst kategori varsa, onun slug'ını ekle
         if (category.parentCategory) {
             const parent = await mongoose.model('Category').findById(category.parentCategory);
             if (parent) {
@@ -104,7 +104,6 @@ categorySchema.pre('save', async function (next) {
         let slug = baseSlug;
         let count = 0;
 
-        // Benzersizliği kontrol et ve gerekirse slug'ı artır
         while (await mongoose.model('Category').findOne({ slug })) {
             count++;
             slug = `${baseSlug}-${count}`;
@@ -115,6 +114,7 @@ categorySchema.pre('save', async function (next) {
 
     next();
 });
+
 
 
 categorySchema.post('remove', async function (category) {

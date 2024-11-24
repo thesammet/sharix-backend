@@ -46,10 +46,13 @@ router.post('/categories/bulk', auth, async (req, res) => {
         const validCategories = [];
 
         for (const category of categories) {
+            // Slug oluşturma işlemi
             let baseSlug = category.name
                 .toLowerCase()
-                .replace(/ /g, '-')
-                .replace(/[^\w-]+/g, '');
+                .normalize('NFD') // Unicode parçalama
+                .replace(/[\u0300-\u036f]/g, '') // Aksan işaretlerini kaldır
+                .replace(/ /g, '-') // Boşlukları tire ile değiştir
+                .replace(/[^a-zA-Z0-9\u00C0-\u00FF-]/g, ''); // İngilizce olmayan karakterlere izin ver
 
             if (category.parentCategory) {
                 const parent = await Category.findById(category.parentCategory);
@@ -61,6 +64,7 @@ router.post('/categories/bulk', auth, async (req, res) => {
             let slug = baseSlug;
             let count = 0;
 
+            // Benzersizliği kontrol et ve gerekirse slug'ı artır
             while (await Category.findOne({ slug })) {
                 count++;
                 slug = `${baseSlug}-${count}`;
@@ -80,6 +84,7 @@ router.post('/categories/bulk', auth, async (req, res) => {
         res.status(400).send(errorResponse(error.message, 400));
     }
 });
+
 
 
 // Get all categories
