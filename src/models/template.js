@@ -1,59 +1,68 @@
 const mongoose = require('mongoose');
 
 // Template Schema
-const templateSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        validate(title) {
-            if (title.length < 1 || title.length > 100) {
-                throw new Error('Template title must be between 3 and 100 characters!');
-            }
+const templateSchema = new mongoose.Schema(
+    {
+        content: {
+            type: String,
+            required: true,
+            trim: true,
+            validate(content) {
+                if (content.length < 5 || content.length > 1000) {
+                    throw new Error('Template content must be between 10 and 1000 characters!');
+                }
+            },
+        },
+        category: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Category', // Şablonun bağlı olduğu kategori
+        },
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User', // Şablonu oluşturan kullanıcı
+            required: true,
+        },
+        backgroundImage: {
+            type: String, // Arka plan resmi için URL
+            default: null,
+        },
+        fontStyle: {
+            type: String, // Yazı tipi
+            default: 'Arial',
+        },
+        fontSize: {
+            type: Number, // Yazı boyutu
+            default: 14,
+        },
+        textAlign: {
+            type: String,
+            enum: ['left', 'center', 'right'],
+            default: 'center', // Metin hizalaması
+        },
+        isGlobal: {
+            type: Boolean,
+            default: true, // Şablon tüm kullanıcılara açık mı?
+        },
+        isCustom: {
+            type: Boolean,
+            default: false, // Admin tarafından mı oluşturulmuş, kullanıcı tarafından mı
+        },
+        lang: {
+            type: String,
+            required: true,
+            trim: true,
+            enum: ['en', 'tr', 'es', 'de', 'fr'], // Geçerli diller
+            default: 'en',
+        },
+        shareCount: {
+            type: Number,
+            default: 0, // Şablonun kaç kez paylaşıldığını takip eder
         },
     },
-    content: {
-        type: String,
-        required: true,
-        trim: true,
-        validate(content) {
-            if (content.length < 5 || content.length > 1000) {
-                throw new Error('Template content must be between 10 and 1000 characters!');
-            }
-        },
-    },
-    category: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category', // Şablonun bağlı olduğu kategori
-    },
-    createdBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // Şablonu oluşturan kullanıcı
-        required: true,
-    },
-    icon: {
-        type: String,
-        default: "", // Şablon için bir simge (URL veya Base64 formatında)
-    },
-    isGlobal: {
-        type: Boolean,
-        default: true, // Şablon tüm kullanıcılara açık mı?
-    },
-    lang: {
-        type: String,
-        required: true,
-        trim: true,
-        enum: ['en', 'tr', 'es', 'de', 'fr'], // Geçerli diller
-        default: 'en', // Varsayılan dil
-    },
-    shareCount: {
-        type: Number,
-        default: 0, // Şablonun kaç kez paylaşıldığını takip eder
-    },
-}, {
-    timestamps: true, // Oluşturulma ve güncellenme tarihlerini otomatik ekler
-});
+    {
+        timestamps: true, // Oluşturulma ve güncellenme tarihlerini otomatik ekler
+    }
+);
 
 // **Instance Methods**
 templateSchema.methods.toJSON = function () {
@@ -83,8 +92,8 @@ templateSchema.statics.incrementShareCount = async function (templateId) {
 // **Middleware**
 templateSchema.pre('save', async function (next) {
     const template = this;
-    if (template.isModified('title')) {
-        console.log(`Template title changed: ${template.title}`);
+    if (template.isModified('content')) {
+        console.log(`Template content changed: ${template.content}`);
     }
     next();
 });
