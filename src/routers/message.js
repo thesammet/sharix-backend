@@ -64,9 +64,9 @@ router.post("/message/generate", auth, async (req, res) => {
             max_tokens: 100,
             temperature: 0.7,
         });
-
+        console.log(response);
         // Sadece üretilen mesajı döndür
-        const generatedMessage = response.data.choices[0].message.content.trim();
+        const generatedMessage = response.choices[0].message.content.trim();
 
         res.status(200).send({
             message: "Message generated successfully.",
