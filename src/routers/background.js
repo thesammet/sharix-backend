@@ -115,4 +115,35 @@ router.delete('/backgrounds/:id', auth, async (req, res) => {
     }
 });
 
+//Random backgrounds
+router.post('/backgrounds/random', async (req, res) => {
+    try {
+        const { count } = req.body; // Get the count from the request body
+        const totalBackgrounds = await Background.countDocuments();
+        const numToFetch = Math.min(count || 1, totalBackgrounds); // Ensure count doesn't exceed total
+
+        if (totalBackgrounds === 0) {
+            return res.status(404).json(errorResponse('No backgrounds found.', 404));
+        }
+
+        const randomBackgrounds = await Background.aggregate([
+            { $sample: { size: numToFetch } }, // Fetch random documents
+            {
+                $lookup: {
+                    from: 'backgroundcategories', // Match the collection name for categories
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category',
+                },
+            },
+            { $unwind: '$category' }, // Flatten category array
+        ]);
+
+        res.status(200).json(successResponse('Random backgrounds retrieved successfully.', randomBackgrounds, 200));
+    } catch (error) {
+        res.status(400).json(errorResponse(error.message, 400));
+    }
+});
+
+
 module.exports = router;
