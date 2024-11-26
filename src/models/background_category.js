@@ -3,13 +3,23 @@ const mongoose = require('mongoose');
 const backgroundCategorySchema = new mongoose.Schema({
     name: {
         type: Map,
-        of: String, // Her dil için isimler string olacak
+        of: String, // Localized strings for names
         required: true,
     },
     description: {
         type: Map,
-        of: String, // Her dil için açıklamalar string olacak
+        of: String, // Localized strings for descriptions
         default: {},
+    },
+    imageUrl: {
+        type: String, // Image URL for the category
+        required: true,
+        validate: {
+            validator: function (value) {
+                return /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(value);
+            },
+            message: 'Invalid image URL format.',
+        },
     },
     isPremium: {
         type: Boolean,
@@ -24,7 +34,7 @@ const backgroundCategorySchema = new mongoose.Schema({
         default: Date.now,
     },
 }, {
-    timestamps: true, // createdAt ve updatedAt otomatik yönetilir
+    timestamps: true, // Automatically manage createdAt and updatedAt
 });
 
 const BackgroundCategory = mongoose.model('BackgroundCategory', backgroundCategorySchema);

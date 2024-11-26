@@ -6,15 +6,16 @@ const { successResponse, errorResponse } = require('../utils/response');
 // Kategori oluştur
 router.post('/background-categories', async (req, res) => {
     try {
-        const { name, description, isPremium } = req.body;
+        const { name, description, imageUrl, isPremium } = req.body;
 
-        if (!name || typeof name !== 'object') {
-            return res.status(400).json(errorResponse('Name must be an object with localized keys.', 400));
+        if (!name || typeof name !== 'object' || !imageUrl) {
+            return res.status(400).json(errorResponse('Name (localized) and imageUrl are required.', 400));
         }
 
         const backgroundCategory = new BackgroundCategory({
             name,
             description,
+            imageUrl,
             isPremium,
         });
 
@@ -24,6 +25,7 @@ router.post('/background-categories', async (req, res) => {
         res.status(400).json(errorResponse(error.message, 400));
     }
 });
+
 
 // Bulk kategori ekleme
 router.post('/background-categories/bulk', async (req, res) => {
@@ -35,8 +37,8 @@ router.post('/background-categories/bulk', async (req, res) => {
         }
 
         for (const category of categories) {
-            if (!category.name || typeof category.name !== 'object') {
-                return res.status(400).json(errorResponse('Each category must have a localized name.', 400));
+            if (!category.name || typeof category.name !== 'object' || !category.imageUrl) {
+                return res.status(400).json(errorResponse('Each category must have a localized name and imageUrl.', 400));
             }
         }
 
@@ -46,6 +48,7 @@ router.post('/background-categories/bulk', async (req, res) => {
         res.status(400).json(errorResponse(error.message, 400));
     }
 });
+
 
 // Tüm kategorileri getir
 router.get('/background-categories', async (req, res) => {
@@ -74,7 +77,7 @@ router.get('/background-categories/:id', async (req, res) => {
 router.patch('/background-categories/:id', async (req, res) => {
     try {
         const updates = Object.keys(req.body);
-        const allowedUpdates = ['name', 'description', 'isPremium'];
+        const allowedUpdates = ['name', 'description', 'imageUrl', 'isPremium'];
         const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
         if (!isValidOperation) {
@@ -92,6 +95,7 @@ router.patch('/background-categories/:id', async (req, res) => {
         res.status(400).json(errorResponse(error.message, 400));
     }
 });
+
 
 // Kategoriyi sil
 router.delete('/background-categories/:id', async (req, res) => {
