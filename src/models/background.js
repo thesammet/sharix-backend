@@ -18,8 +18,8 @@ const backgroundSchema = new mongoose.Schema({
         }
     },
     category: {
-        type: String,
-        enum: ['most popular', 'animated', 'plain', 'seasonal'],
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'BackgroundCategory',
         required: true
     },
     isPremium: {
