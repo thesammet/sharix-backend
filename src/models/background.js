@@ -12,10 +12,10 @@ const backgroundSchema = new mongoose.Schema({
         required: true,
         validate: {
             validator: function (value) {
-                return /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(value);
+                return /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(value);
             },
-            message: 'Invalid URL format.'
-        }
+            message: 'Invalid image URL format.',
+        },
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,

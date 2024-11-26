@@ -16,7 +16,7 @@ const backgroundCategorySchema = new mongoose.Schema({
         required: true,
         validate: {
             validator: function (value) {
-                return /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(value);
+                return /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(value);
             },
             message: 'Invalid image URL format.',
         },
