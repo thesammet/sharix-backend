@@ -115,31 +115,51 @@ router.delete('/backgrounds/:id', auth, async (req, res) => {
     }
 });
 
-//Random backgrounds
 router.post('/backgrounds/random', async (req, res) => {
     try {
-        const { count } = req.body; // Get the count from the request body
+        const { count } = req.body; // Number of random backgrounds requested
         const totalBackgrounds = await Background.countDocuments();
-        const numToFetch = Math.min(count || 1, totalBackgrounds); // Ensure count doesn't exceed total
 
         if (totalBackgrounds === 0) {
             return res.status(404).json(errorResponse('No backgrounds found.', 404));
         }
 
+        const numToFetch = Math.min(count || 1, totalBackgrounds); // Default to 1 if count is not provided or exceeds total
+
         const randomBackgrounds = await Background.aggregate([
             { $sample: { size: numToFetch } }, // Fetch random documents
-            {
-                $lookup: {
-                    from: 'backgroundcategories', // Match the collection name for categories
-                    localField: 'category',
-                    foreignField: '_id',
-                    as: 'category',
-                },
-            },
-            { $unwind: '$category' }, // Flatten category array
         ]);
 
         res.status(200).json(successResponse('Random backgrounds retrieved successfully.', randomBackgrounds, 200));
+    } catch (error) {
+        res.status(400).json(errorResponse(error.message, 400));
+    }
+});
+
+router.post('/backgrounds/bulk', auth, async (req, res) => {
+    try {
+        const { categoryId, backgrounds } = req.body;
+
+        if (!categoryId || !Array.isArray(backgrounds) || backgrounds.length === 0) {
+            return res.status(400).json(errorResponse('Category ID and an array of backgrounds are required.', 400));
+        }
+
+        const category = await BackgroundCategory.findById(categoryId);
+        if (!category) {
+            return res.status(404).json(errorResponse('Category not found.', 404));
+        }
+
+        const bulkBackgrounds = backgrounds.map(background => ({
+            name: background.name,
+            imageUrl: background.imageUrl,
+            isPremium: background.isPremium || false,
+            category: categoryId,
+            createdBy: req.user._id,
+        }));
+
+        const addedBackgrounds = await Background.insertMany(bulkBackgrounds);
+
+        res.status(201).json(successResponse('Backgrounds added successfully.', addedBackgrounds, 201));
     } catch (error) {
         res.status(400).json(errorResponse(error.message, 400));
     }
