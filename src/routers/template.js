@@ -174,7 +174,7 @@ router.post('/templates/bulk-upload', auth, async (req, res) => {
             const template = new Template({
                 content,
                 category,
-                createdBy: req.user._id, // Admin ID'si
+                createdBy: req.user._id,
                 icon,
                 isGlobal,
                 lang,
