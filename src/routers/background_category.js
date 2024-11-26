@@ -1,5 +1,5 @@
 const express = require('express');
-const BackgroundCategory = require('../models/backgroundCategory');
+const BackgroundCategory = require('../models/background_category');
 const router = express.Router();
 const { successResponse, errorResponse } = require('../utils/response');
 
