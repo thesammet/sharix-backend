@@ -39,7 +39,7 @@ router.post('/templates', auth, async (req, res) => {
 
 router.get('/templates/admin', auth, async (req, res) => {
     try {
-        const templates = await Template.find({ isCustom: false, isGlobal: true });
+        const templates = await Template.find({ isCustom: false, isGlobal: true }).populate('category', 'name');
         res.status(200).send(successResponse('Admin templates retrieved successfully.', templates, 200));
     } catch (error) {
         res.status(500).send(errorResponse(error.message, 500));
@@ -48,7 +48,7 @@ router.get('/templates/admin', auth, async (req, res) => {
 
 router.get('/templates/user', auth, async (req, res) => {
     try {
-        const templates = await Template.find({ createdBy: req.user._id, isCustom: true });
+        const templates = await Template.find({ createdBy: req.user._id, isCustom: true }).populate('category', 'name');
         res.status(200).send(successResponse('User templates retrieved successfully.', templates, 200));
     } catch (error) {
         res.status(500).send(errorResponse(error.message, 500));
@@ -60,7 +60,7 @@ router.get('/templates/user', auth, async (req, res) => {
 router.get('/templates', auth, async (req, res) => {
     try {
         const lang = req.body.lang || 'en'; // Varsayılan dil 'en'
-        const templates = await Template.find({ isGlobal: true, lang });
+        const templates = await Template.find({ isGlobal: true, lang }).populate('category', 'name');
         res.status(200).send(successResponse('Templates retrieved successfully.', templates, 200));
     } catch (error) {
         res.status(500).send(errorResponse(error.message, 500));
@@ -73,7 +73,7 @@ router.get('/templates/category/:categoryId', auth, async (req, res) => {
     const lang = req.body.lang || 'en'; // Varsayılan dil 'en'
 
     try {
-        const templates = await Template.find({ category: categoryId, lang });
+        const templates = await Template.find({ category: categoryId, lang }).populate('category', 'name');
         if (!templates || templates.length === 0) {
             return res.status(404).send(errorResponse('No templates found for this category.', 404));
         }

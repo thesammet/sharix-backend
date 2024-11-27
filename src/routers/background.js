@@ -43,7 +43,7 @@ router.post('/backgrounds/filter', async (req, res) => {
         if (categoryId) filters.category = categoryId;
         if (typeof isPremium === 'boolean') filters.isPremium = isPremium;
 
-        const backgrounds = await Background.find(filters);
+        const backgrounds = await Background.find(filters).populate('category');
         res.status(200).json(successResponse('Backgrounds retrieved successfully.', backgrounds, 200));
     } catch (error) {
         res.status(400).json(errorResponse(error.message, 400));
@@ -55,7 +55,7 @@ router.get('/backgrounds/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const background = await Background.findById(id);
+        const background = await Background.findById(id).populate('category');
         if (!background) {
             return res.status(404).json(errorResponse('Background not found.', 404));
         }
