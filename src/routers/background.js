@@ -38,16 +38,26 @@ router.post('/backgrounds/filter', async (req, res) => {
     try {
         const { categoryId, isPremium } = req.body;
 
+        // Filtreleri oluştur
         const filters = {};
-        if (categoryId) filters.category = categoryId;
-        if (typeof isPremium === 'boolean') filters.isPremium = isPremium;
+        if (categoryId) {
+            filters.category = categoryId;
+        }
+        if (typeof isPremium === 'boolean') {
+            filters.isPremium = isPremium;
+        }
 
+        // Background'ları filtrelere göre getir ve category ile populate et
         const backgrounds = await Background.find(filters).populate('category');
+
+        // Sonuçları başarıyla döndür
         res.status(200).json(successResponse('Backgrounds retrieved successfully.', backgrounds, 200));
     } catch (error) {
+        // Hata durumunda hata mesajını döndür
         res.status(400).json(errorResponse(error.message, 400));
     }
 });
+
 
 // Get all backgrounds or filter by category/premium status
 router.post('/backgrounds/random', async (req, res) => {
