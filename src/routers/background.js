@@ -35,17 +35,29 @@ router.post('/backgrounds', auth, async (req, res) => {
 });
 
 // Get all backgrounds or filter by category/premium status
-router.post('/backgrounds/filter', async (req, res) => {
+router.post('/backgrounds/random', async (req, res) => {
     try {
-        const { categoryId, isPremium } = req.body;
+        const { count } = req.body; // İstekten alınan "count" değeri
+        const totalBackgrounds = await Background.countDocuments(); // Toplam arka plan sayısı
 
-        const filters = {};
-        if (categoryId) filters.category = categoryId;
-        if (typeof isPremium === 'boolean') filters.isPremium = isPremium;
+        // Hiç arka plan yoksa hata döndür
+        if (totalBackgrounds === 0) {
+            return res.status(404).json(errorResponse('No backgrounds found.', 404));
+        }
+        const numToFetch = Math.min(count || 1, totalBackgrounds);
 
-        const backgrounds = await Background.find(filters).populate('category');
-        res.status(200).json(successResponse('Backgrounds retrieved successfully.', backgrounds, 200));
+        // Rastgele arka planları çek ve kategori verilerini ilişkilendir (populate)
+        const randomBackgrounds = await Background.aggregate([
+            { $sample: { size: numToFetch } }, // Rastgele döküman çek
+        ]).exec();
+
+        // Kategorileri populate et
+        const populatedBackgrounds = await Background.populate(randomBackgrounds, { path: 'category' });
+
+        // Başarı cevabı döndür
+        res.status(200).json(successResponse('Random backgrounds retrieved successfully.', populatedBackgrounds, 200));
     } catch (error) {
+        // Hata durumunda hata cevabı döndür
         res.status(400).json(errorResponse(error.message, 400));
     }
 });
