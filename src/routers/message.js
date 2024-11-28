@@ -20,37 +20,76 @@ router.post("/message/generate", auth, async (req, res) => {
     }
 
     if (!mode) {
-        return res.status(400).send({ error: "Mode is required to generate a message." });
+        return res
+            .status(400)
+            .send({ error: "Mode is required to generate a message." });
     }
 
     try {
         let instruction;
         switch (mode) {
             case "copilot random-message":
-                instruction = `Generate a random thoughtful message in ${language} without any additional explanation, context, or subject. Only message content is needed.`;
+                instruction = `Generate a random thoughtful message in ${language}. Only provide the message content without any additional explanation, context, or subject.`;
                 break;
 
             case "copilot message-by-category":
                 if (!category) {
-                    return res.status(400).send(errorResponse("Category is required for message-by-category mode.", 400));
+                    return res.status(400).send(
+                        errorResponse(
+                            "Category is required for message-by-category mode.",
+                            400
+                        )
+                    );
                 }
-                instruction = `Generate a message suitable for the '${category}' category in ${language}.`;
+                instruction = `Generate a message suitable for the '${category}' category in ${language}. Only provide the message content without any additional explanation, context, or subject.`;
                 break;
 
             case "copilot short-message":
-                instruction = `Rewrite the following message in a shorter form in ${language}: "${message}".`;
+                if (!message) {
+                    return res.status(400).send(
+                        errorResponse(
+                            "Message input is required for short-message mode.",
+                            400
+                        )
+                    );
+                }
+                instruction = `Rewrite the following message in a shorter form in ${language}: "${message}". Only provide the shortened message content without any additional explanation, context, or subject.`;
                 break;
 
             case "copilot complete-message":
-                instruction = `Complete the following unfinished message in ${language}: "${message}".`;
+                if (!message) {
+                    return res.status(400).send(
+                        errorResponse(
+                            "Message input is required for complete-message mode.",
+                            400
+                        )
+                    );
+                }
+                instruction = `Complete the following unfinished message in ${language}: "${message}". Only provide the completed message content without any additional explanation, context, or subject.`;
                 break;
 
             case "copilot change-tone":
-                if (!tone) {
-                    return res.status(400).send(errorResponse("Category is required for message-by-category mode.", 400));
-
+                if (!message || !tone) {
+                    return res.status(400).send(
+                        errorResponse(
+                            "Message and tone are required for change-tone mode.",
+                            400
+                        )
+                    );
                 }
-                instruction = `Change the tone of the following message to be more ${tone} in ${language}: "${message}".`;
+                instruction = `Change the tone of the following message to be more ${tone} in ${language}: "${message}". Only provide the rewritten message content without any additional explanation, context, or subject.`;
+                break;
+
+            case "copilot input-message":
+                if (!message) {
+                    return res.status(400).send(
+                        errorResponse(
+                            "Message input is required for input-message mode.",
+                            400
+                        )
+                    );
+                }
+                instruction = `Write a response to the following input message in ${language}: "${message}". Only provide the response message content without any additional explanation, context, or subject.`;
                 break;
 
             default:
@@ -58,9 +97,13 @@ router.post("/message/generate", auth, async (req, res) => {
         }
 
         const response = await client.chat.completions.create({
-            model: "gpt-4-turbo",
+            model: "gpt-4",
             messages: [
-                { role: "system", content: "You are a helpful assistant for generating personalized messages." },
+                {
+                    role: "system",
+                    content:
+                        "You are a helpful assistant for generating personalized messages.",
+                },
                 { role: "user", content: instruction },
             ],
             max_tokens: 100,
@@ -78,15 +121,22 @@ router.post("/message/generate", auth, async (req, res) => {
         }).save();
 
         res.status(200).send(
-            successResponse("Message generated successfully.", {
-                id: savedMessage._id,
-                generated: savedMessage.generatedMessage,
-            }, 200)
+            successResponse(
+                "Message generated successfully.",
+                {
+                    id: savedMessage._id,
+                    generated: savedMessage.generatedMessage,
+                },
+                200
+            )
         );
     } catch (error) {
-        res.status(500).send(errorResponse("Failed to generate a message.", 500));
+        res
+            .status(500)
+            .send(errorResponse("Failed to generate a message.", 500));
     }
 });
+
 
 // Retrieve message history
 router.get("/messages", auth, async (req, res) => {
