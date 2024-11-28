@@ -34,6 +34,21 @@ router.post('/backgrounds', auth, async (req, res) => {
     }
 });
 
+router.post('/backgrounds/filter', async (req, res) => {
+    try {
+        const { categoryId, isPremium } = req.body;
+
+        const filters = {};
+        if (categoryId) filters.category = categoryId;
+        if (typeof isPremium === 'boolean') filters.isPremium = isPremium;
+
+        const backgrounds = await Background.find(filters).populate('category');
+        res.status(200).json(successResponse('Backgrounds retrieved successfully.', backgrounds, 200));
+    } catch (error) {
+        res.status(400).json(errorResponse(error.message, 400));
+    }
+});
+
 // Get all backgrounds or filter by category/premium status
 router.post('/backgrounds/random', async (req, res) => {
     try {
@@ -122,27 +137,6 @@ router.delete('/backgrounds/:id', auth, async (req, res) => {
 
         await background.remove();
         res.status(200).json(successResponse('Background deleted successfully.', background, 200));
-    } catch (error) {
-        res.status(400).json(errorResponse(error.message, 400));
-    }
-});
-
-router.post('/backgrounds/random', async (req, res) => {
-    try {
-        const { count } = req.body; // Number of random backgrounds requested
-        const totalBackgrounds = await Background.countDocuments();
-
-        if (totalBackgrounds === 0) {
-            return res.status(404).json(errorResponse('No backgrounds found.', 404));
-        }
-
-        const numToFetch = Math.min(count || 1, totalBackgrounds); // Default to 1 if count is not provided or exceeds total
-
-        const randomBackgrounds = await Background.aggregate([
-            { $sample: { size: numToFetch } }, // Fetch random documents
-        ]);
-
-        res.status(200).json(successResponse('Random backgrounds retrieved successfully.', randomBackgrounds, 200));
     } catch (error) {
         res.status(400).json(errorResponse(error.message, 400));
     }
