@@ -7,7 +7,7 @@ const { successResponse, errorResponse } = require('../utils/response');
 
 // **Şablon Oluşturma**
 router.post('/templates', auth, async (req, res) => {
-    const { content, category, backgroundImage, fontStyle, fontSize, textAlign, verticalAlign, textColor, isGlobal, lang } = req.body;
+    const { content, category, backgroundImage, fontStyle, fontName, fontSize, textAlign, verticalAlign, textColor, isGlobal, lang } = req.body;
 
     try {
         const categoryExists = await Category.findById(category);
@@ -21,6 +21,7 @@ router.post('/templates', auth, async (req, res) => {
             createdBy: req.user._id, // Oturum açan kullanıcıyı ekle
             backgroundImage,
             fontStyle,
+            fontName,
             fontSize,
             textAlign,
             verticalAlign,
@@ -86,7 +87,7 @@ router.get('/templates/category/:categoryId', auth, async (req, res) => {
 // **Şablon Güncelleme**
 router.patch('/templates/:templateId', auth, async (req, res) => {
     const updates = Object.keys(req.body);
-    const allowedUpdates = ['content', 'icon', 'isGlobal', 'lang', 'backgroundImage', 'fontStyle', 'fontSize', 'textAlign', 'verticalAlign', 'textColor'];
+    const allowedUpdates = ['content', 'icon', 'isGlobal', 'lang', 'backgroundImage', 'fontStyle', 'fontName', 'fontSize', 'textAlign', 'verticalAlign', 'textColor'];
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
     if (!isValidOperation) {
@@ -156,7 +157,7 @@ router.post('/templates/bulk-upload', auth, async (req, res) => {
 
         const createdTemplates = [];
         for (const templateData of templates) {
-            const { content, category, icon, isGlobal, lang, backgroundImage, fontStyle, fontSize, textAlign, verticalAlign, textColor } = templateData;
+            const { content, category, icon, isGlobal, lang, backgroundImage, fontStyle, fontName, fontSize, textAlign, verticalAlign, textColor } = templateData;
 
             if (!lang) {
                 return res.status(400).send(errorResponse('Language (lang) is required for all templates.', 400));
@@ -180,6 +181,7 @@ router.post('/templates/bulk-upload', auth, async (req, res) => {
                 lang,
                 backgroundImage,
                 fontStyle,
+                fontName,
                 fontSize,
                 textAlign,
                 verticalAlign,

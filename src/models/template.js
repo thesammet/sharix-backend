@@ -28,7 +28,11 @@ const templateSchema = new mongoose.Schema(
         },
         fontStyle: {
             type: String, // Yazı tipi
-            default: 'Arial',
+            default: 'normal',
+        },
+        fontName: {
+            type: String, // Yazı tipi
+            default: 'Roboto',
         },
         fontSize: {
             type: Number, // Yazı boyutu
