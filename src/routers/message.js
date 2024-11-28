@@ -29,7 +29,7 @@ router.post("/message/generate", auth, async (req, res) => {
         let instruction;
         switch (mode) {
             case "copilot random-message":
-                instruction = `Generate a random thoughtful message in ${language}. Only provide the message content without any additional explanation, context, or subject.`;
+                instruction = `Generate a random thoughtful message. Only provide the message content without any additional explanation, context, or subject.`;
                 break;
 
             case "copilot message-by-category":
@@ -41,7 +41,7 @@ router.post("/message/generate", auth, async (req, res) => {
                         )
                     );
                 }
-                instruction = `Generate a message suitable for the '${category}' category in ${language}. Only provide the message content without any additional explanation, context, or subject.`;
+                instruction = `Generate a message suitable for the '${category}' category. Only provide the message content without any additional explanation, context, or subject.`;
                 break;
 
             case "copilot short-message":
@@ -53,7 +53,7 @@ router.post("/message/generate", auth, async (req, res) => {
                         )
                     );
                 }
-                instruction = `Rewrite the following message in a shorter form in ${language}: "${message}". Only provide the shortened message content without any additional explanation, context, or subject.`;
+                instruction = `Rewrite the following message in a shorter form: "${message}". Only provide the shortened message content without any additional explanation, context, or subject.`;
                 break;
 
             case "copilot complete-message":
@@ -65,7 +65,7 @@ router.post("/message/generate", auth, async (req, res) => {
                         )
                     );
                 }
-                instruction = `Complete the following unfinished message in ${language}: "${message}". Only provide the completed message content without any additional explanation, context, or subject.`;
+                instruction = `Complete the following unfinished message: "${message}". Only provide the completed message content without any additional explanation, context, or subject.`;
                 break;
 
             case "copilot change-tone":
@@ -77,7 +77,7 @@ router.post("/message/generate", auth, async (req, res) => {
                         )
                     );
                 }
-                instruction = `Change the tone of the following message to be more ${tone} in ${language}: "${message}". Only provide the rewritten message content without any additional explanation, context, or subject.`;
+                instruction = `Change the tone of the following message to be more ${tone}: "${message}". Only provide the rewritten message content without any additional explanation, context, or subject.`;
                 break;
 
             case "copilot input-message":
@@ -89,7 +89,7 @@ router.post("/message/generate", auth, async (req, res) => {
                         )
                     );
                 }
-                instruction = `Write a response to the following input message in ${language}: "${message}". Only provide the response message content without any additional explanation, context, or subject.`;
+                instruction = `Write a response to the following input message: "${message}". Only provide the response message content without any additional explanation, context, or subject.`;
                 break;
 
             default:
