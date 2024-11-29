@@ -170,7 +170,7 @@ router.get("/messages/category/:category", auth, async (req, res) => {
 // Generate a random message
 router.post("/message/random", auth, async (req, res) => {
     try {
-        const instruction = `Generate a random message in ${req.language || "en"} without any additional explanation, context, or subject. Only message content is needed.`;
+        const instruction = `Generate a random message. Only provide the rewritten message content without any additional explanation, context, or subject.`;
         const response = await client.chat.completions.create({
             model: "gpt-4-turbo",
             messages: [{ role: "user", content: instruction }],
