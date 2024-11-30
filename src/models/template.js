@@ -16,6 +16,7 @@ const templateSchema = new mongoose.Schema(
         category: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Category', // Şablonun bağlı olduğu kategori
+            default: null,
         },
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,

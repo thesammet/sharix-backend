@@ -10,10 +10,12 @@ router.post('/templates', auth, async (req, res) => {
     const { content, category, backgroundImage, fontStyle, fontName, fontSize, textAlign, verticalAlign, textColor, isGlobal, lang } = req.body;
 
     try {
-        /*  const categoryExists = await Category.findById(category);
-         if (!categoryExists) {
-             return res.status(404).send(errorResponse('Category not found.', 404));
-         } */
+        if (category) {
+            const categoryExists = await Category.findById(category);
+            if (!categoryExists) {
+                return res.status(404).send(errorResponse('Category not found.', 404));
+            }
+        }
 
         const template = new Template({
             content,
