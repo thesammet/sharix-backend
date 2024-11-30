@@ -7,7 +7,7 @@ const { successResponse, errorResponse } = require('../utils/response');
 // Create a new category
 router.post('/categories', auth, async (req, res) => {
     try {
-        const { name, description, parentCategory, isGlobal, icon, lang } = req.body;
+        const { name, description, parentCategory, isGlobal, icon, lang, color } = req.body;
 
         // Ensure required fields are provided
         if (!name) {
