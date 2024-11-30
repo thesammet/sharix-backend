@@ -10,10 +10,10 @@ router.post('/templates', auth, async (req, res) => {
     const { content, category, backgroundImage, fontStyle, fontName, fontSize, textAlign, verticalAlign, textColor, isGlobal, lang } = req.body;
 
     try {
-        const categoryExists = await Category.findById(category);
-        if (!categoryExists) {
-            return res.status(404).send(errorResponse('Category not found.', 404));
-        }
+        /*  const categoryExists = await Category.findById(category);
+         if (!categoryExists) {
+             return res.status(404).send(errorResponse('Category not found.', 404));
+         } */
 
         const template = new Template({
             content,
@@ -60,7 +60,7 @@ router.get('/templates/user', auth, async (req, res) => {
 // **Tüm Şablonları Listeleme**
 router.get('/templates', auth, async (req, res) => {
     try {
-        const lang = req.body.lang || 'en'; // Varsayılan dil 'en'
+        const lang = req.query.lang || 'en'; // Varsayılan dil 'en'
         const templates = await Template.find({ isGlobal: true, lang }).populate('category', 'name');
         res.status(200).send(successResponse('Templates retrieved successfully.', templates, 200));
     } catch (error) {
