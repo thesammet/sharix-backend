@@ -5,6 +5,22 @@ const Category = require('../models/category');
 const auth = require('../middleware/auth');
 const { successResponse, errorResponse } = require('../utils/response');
 
+const paginate = async (model, query, page, limit) => {
+    const skip = (page - 1) * limit;
+    const totalItems = await model.countDocuments(query);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+        data: await model.find(query).skip(skip).limit(limit).populate('category', 'name'),
+        pagination: {
+            page,
+            limit,
+            totalPages,
+            totalItems,
+        },
+    };
+};
+
 // **Şablon Oluşturma**
 router.post('/templates', auth, async (req, res) => {
     const { content, category, backgroundImage, fontStyle, fontName, fontSize, textAlign, verticalAlign, textColor, isGlobal, lang } = req.body;
@@ -41,46 +57,33 @@ router.post('/templates', auth, async (req, res) => {
 });
 
 router.get('/templates/admin', auth, async (req, res) => {
+    const { page = 1, limit = 10 } = req.query;
+
     try {
-        const templates = await Template.find({ isCustom: false, isGlobal: true }).populate('category', 'name');
-        res.status(200).send(successResponse('Admin templates retrieved successfully.', templates, 200));
+        const { data, pagination } = await paginate(
+            Template,
+            { isCustom: false, isGlobal: true },
+            parseInt(page),
+            parseInt(limit)
+        );
+        res.status(200).send(successResponse('Admin templates retrieved successfully.', { templates: data, pagination }, 200));
     } catch (error) {
         res.status(500).send(errorResponse(error.message, 500));
     }
 });
 
+// **Kullanıcı Şablonları Listeleme**
 router.get('/templates/user', auth, async (req, res) => {
-    try {
-        const templates = await Template.find({ createdBy: req.user._id, isCustom: true }).populate('category', 'name');
-        res.status(200).send(successResponse('User templates retrieved successfully.', templates, 200));
-    } catch (error) {
-        res.status(500).send(errorResponse(error.message, 500));
-    }
-});
-
-
-// **Tüm Şablonları Listeleme**
-router.get('/templates', auth, async (req, res) => {
-    try {
-        const lang = req.query.lang || 'en'; // Varsayılan dil 'en'
-        const templates = await Template.find({ isGlobal: true, lang }).populate('category', 'name');
-        res.status(200).send(successResponse('Templates retrieved successfully.', templates, 200));
-    } catch (error) {
-        res.status(500).send(errorResponse(error.message, 500));
-    }
-});
-
-// **Kategoriye Göre Şablonları Listeleme**
-router.get('/templates/category/:categoryId', auth, async (req, res) => {
-    const { categoryId } = req.params;
-    const lang = req.body.lang || 'en'; // Varsayılan dil 'en'
+    const { page = 1, limit = 10 } = req.query;
 
     try {
-        const templates = await Template.find({ category: categoryId, lang }).populate('category', 'name');
-        if (!templates || templates.length === 0) {
-            return res.status(404).send(errorResponse('No templates found for this category.', 404));
-        }
-        res.status(200).send(successResponse('Templates retrieved successfully.', templates, 200));
+        const { data, pagination } = await paginate(
+            Template,
+            { createdBy: req.user._id, isCustom: true },
+            parseInt(page),
+            parseInt(limit)
+        );
+        res.status(200).send(successResponse('User templates retrieved successfully.', { templates: data, pagination }, 200));
     } catch (error) {
         res.status(500).send(errorResponse(error.message, 500));
     }
@@ -149,6 +152,45 @@ router.patch('/templates/:templateId/share', auth, async (req, res) => {
 });
 
 // **Toplu Şablon Yükleme**
+router.get('/templates', auth, async (req, res) => {
+    const { page = 1, limit = 10, lang = 'en' } = req.query;
+
+    try {
+        const { data, pagination } = await paginate(
+            Template,
+            { isGlobal: true, lang },
+            parseInt(page),
+            parseInt(limit)
+        );
+        res.status(200).send(successResponse('Templates retrieved successfully.', { templates: data, pagination }, 200));
+    } catch (error) {
+        res.status(500).send(errorResponse(error.message, 500));
+    }
+});
+
+// **Kategoriye Göre Şablonları Listeleme**
+router.get('/templates/category/:categoryId', auth, async (req, res) => {
+    const { categoryId } = req.params;
+    const { page = 1, limit = 10, lang = 'en' } = req.query;
+
+    try {
+        const { data, pagination } = await paginate(
+            Template,
+            { category: categoryId, lang },
+            parseInt(page),
+            parseInt(limit)
+        );
+
+        if (!data || data.length === 0) {
+            return res.status(404).send(errorResponse('No templates found for this category.', 404));
+        }
+        res.status(200).send(successResponse('Templates retrieved successfully.', { templates: data, pagination }, 200));
+    } catch (error) {
+        res.status(500).send(errorResponse(error.message, 500));
+    }
+});
+
+// **Toplu Şablon Yükleme**
 router.post('/templates/bulk-upload', auth, async (req, res) => {
     try {
         const templates = req.body.templates;
@@ -187,7 +229,7 @@ router.post('/templates/bulk-upload', auth, async (req, res) => {
                 fontSize,
                 textAlign,
                 verticalAlign,
-                textColor
+                textColor,
             });
 
             await template.save();
