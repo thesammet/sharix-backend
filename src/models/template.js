@@ -8,7 +8,7 @@ const templateSchema = new mongoose.Schema(
             required: true,
             trim: true,
             validate(content) {
-                if (content.length < 5 || content.length > 1000) {
+                if (content.length > 1000) {
                     throw new Error('Template content must be between 10 and 1000 characters!');
                 }
             },
