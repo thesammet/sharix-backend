@@ -132,7 +132,6 @@ router.get('/categories', auth, async (req, res) => {
             { lang },
             page,
             limit,
-            { updatedAt: -1 } // Son güncellenenler önce gelsin
         );
 
         res.status(200).send(successResponse('Categories retrieved successfully.', { categories: data, pagination }, 200));
@@ -221,7 +220,6 @@ router.get('/categories/:id/subcategories', auth, async (req, res) => {
             { parentCategory: req.params.id, lang },
             page,
             limit,
-            { updatedAt: -1 } // Son güncellenenler önce gelsin
         );
 
         if (data.length === 0) {
