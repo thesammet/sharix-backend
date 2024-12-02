@@ -1,53 +1,21 @@
-// lib/routes/categories.js
-
 const express = require('express');
 const router = new express.Router();
 const Category = require('../models/category');
 const auth = require('../middleware/auth');
 const { successResponse, errorResponse } = require('../utils/response');
 
-// Pagination Utility Function
-const paginate = async (model, query, page, limit, sort = { updatedAt: -1 }) => {
-    const skip = (page - 1) * limit;
-    const totalItems = await model.countDocuments(query);
-    const totalPages = Math.ceil(totalItems / limit);
-
-    return {
-        data: await model
-            .find(query)
-            .sort(sort)
-            .skip(skip)
-            .limit(limit)
-            .populate('parentCategory', 'name'), // 'parentCategory' alanını populate ediyoruz
-        pagination: {
-            page,
-            limit,
-            totalPages,
-            totalItems,
-        },
-    };
-};
-
-// **Kategori Oluşturma**
+// Create a new category
 router.post('/categories', auth, async (req, res) => {
     try {
         const { name, description, parentCategory, isGlobal, icon, lang, color } = req.body;
 
-        // Zorunlu alanların kontrolü
+        // Ensure required fields are provided
         if (!name) {
             return res.status(400).send(errorResponse('Category name is required.', 400));
         }
 
         if (!lang) {
             return res.status(400).send(errorResponse('Language (lang) is required.', 400));
-        }
-
-        // Eğer parentCategory belirtilmişse, mevcut olup olmadığını kontrol et
-        if (parentCategory) {
-            const parent = await Category.findById(parentCategory);
-            if (!parent) {
-                return res.status(404).send(errorResponse('Parent category not found.', 404));
-            }
         }
 
         const category = new Category({
@@ -68,7 +36,7 @@ router.post('/categories', auth, async (req, res) => {
     }
 });
 
-// **Toplu Kategori Oluşturma**
+// Create multiple categories in bulk
 router.post('/categories/bulk', auth, async (req, res) => {
     try {
         const categories = req.body.categories;
@@ -108,10 +76,6 @@ router.post('/categories/bulk', auth, async (req, res) => {
             });
         }
 
-        if (validCategories.length === 0) {
-            return res.status(400).send(errorResponse('No valid categories to create.', 400));
-        }
-
         const createdCategories = await Category.insertMany(validCategories);
 
         res.status(201).send(successResponse('Categories created successfully.', createdCategories, 201));
@@ -120,31 +84,21 @@ router.post('/categories/bulk', auth, async (req, res) => {
     }
 });
 
-// **Tüm Kategorileri Listeleme (Sayfalı)**
+// Get all categories
 router.get('/categories', auth, async (req, res) => {
     try {
-        const lang = req.query.lang || 'en'; // Dil filtresi
-        const page = parseInt(req.query.page) || 1; // Varsayılan sayfa 1
-        const limit = parseInt(req.query.limit) || 10; // Varsayılan limit 10
-
-        const { data, pagination } = await paginate(
-            Category,
-            { lang },
-            page,
-            limit,
-            { updatedAt: -1 } // Son güncellenenler önce gelsin
-        );
-
-        res.status(200).send(successResponse('Categories retrieved successfully.', { categories: data, pagination }, 200));
+        const lang = req.body.lang || 'en'; // Filter by language
+        const categories = await Category.find({ lang });
+        res.status(200).send(successResponse('Categories retrieved successfully.', categories, 200));
     } catch (error) {
         res.status(500).send(errorResponse(error.toString(), 500));
     }
 });
 
-// **Tek Bir Kategoriyi Getirme**
+// Get a single category by ID
 router.get('/categories/:id', auth, async (req, res) => {
     try {
-        const category = await Category.findById(req.params.id).populate('parentCategory', 'name');
+        const category = await Category.findById(req.params.id);
 
         if (!category) {
             return res.status(404).send(errorResponse('Category not found.', 404));
@@ -156,7 +110,7 @@ router.get('/categories/:id', auth, async (req, res) => {
     }
 });
 
-// **Kategori Güncelleme**
+// Update a category
 router.patch('/categories/:id', auth, async (req, res) => {
     const updates = Object.keys(req.body);
     const allowedUpdates = ['name', 'description', 'parentCategory', 'isGlobal', 'icon', 'lang', 'color'];
@@ -173,14 +127,6 @@ router.patch('/categories/:id', auth, async (req, res) => {
             return res.status(404).send(errorResponse('Category not found.', 404));
         }
 
-        // Eğer parentCategory güncellenmişse, mevcut olup olmadığını kontrol et
-        if (updates.includes('parentCategory') && req.body.parentCategory) {
-            const parent = await Category.findById(req.body.parentCategory);
-            if (!parent) {
-                return res.status(404).send(errorResponse('Parent category not found.', 404));
-            }
-        }
-
         updates.forEach((update) => (category[update] = req.body[update]));
         await category.save();
 
@@ -190,7 +136,7 @@ router.patch('/categories/:id', auth, async (req, res) => {
     }
 });
 
-// **Kategori Silme**
+// Delete a category
 router.delete('/categories/:id', auth, async (req, res) => {
     try {
         const category = await Category.findById(req.params.id);
@@ -199,7 +145,7 @@ router.delete('/categories/:id', auth, async (req, res) => {
             return res.status(404).send(errorResponse('Category not found.', 404));
         }
 
-        // Silinen kategorinin alt kategorilerinin parentCategory'sini null yap
+        // Update parentCategory of subcategories to null
         await Category.updateMany({ parentCategory: req.params.id }, { parentCategory: null });
 
         await category.remove();
@@ -209,26 +155,17 @@ router.delete('/categories/:id', auth, async (req, res) => {
     }
 });
 
-// **Belirli Bir Kategorinin Alt Kategorilerini Listeleme (Sayfalı)**
+// Get subcategories of a category
 router.get('/categories/:id/subcategories', auth, async (req, res) => {
     try {
-        const lang = req.query.lang || 'en'; // Dil filtresi
-        const page = parseInt(req.query.page) || 1; // Varsayılan sayfa 1
-        const limit = parseInt(req.query.limit) || 10; // Varsayılan limit 10
+        const lang = req.body.lang || 'en'; // Filter by language
+        const subcategories = await Category.find({ parentCategory: req.params.id, lang });
 
-        const { data, pagination } = await paginate(
-            Category,
-            { parentCategory: req.params.id, lang },
-            page,
-            limit,
-            { updatedAt: -1 } // Son güncellenenler önce gelsin
-        );
-
-        if (data.length === 0) {
+        if (subcategories.length === 0) {
             return res.status(404).send(errorResponse('No subcategories found for this category.', 404));
         }
 
-        res.status(200).send(successResponse('Subcategories retrieved successfully.', { subcategories: data, pagination }, 200));
+        res.status(200).send(successResponse('Subcategories retrieved successfully.', subcategories, 200));
     } catch (error) {
         res.status(400).send(errorResponse(error.toString(), 400));
     }
