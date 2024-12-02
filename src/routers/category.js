@@ -120,26 +120,35 @@ router.post('/categories/bulk', auth, async (req, res) => {
     }
 });
 
-// **Tüm Kategorileri Listeleme (Sayfalı)**
+// **Kategorileri Listeleme (Ana veya Alt Kategoriler - Sayfalı)**
 router.get('/categories', auth, async (req, res) => {
     try {
         const lang = req.query.lang || 'en'; // Dil filtresi
         const page = parseInt(req.query.page) || 1; // Varsayılan sayfa 1
         const limit = parseInt(req.query.limit) || 10; // Varsayılan limit 10
+        const isMainCategory = req.query.mainCategory === 'true'; // Ana kategori olup olmadığını kontrol et
+
+        // Ana veya alt kategoriler için filtreyi ayarla
+        const filter = isMainCategory ? { lang, parentCategory: null } : { lang, parentCategory: { $ne: null } };
 
         const { data, pagination } = await paginate(
             Category,
-            { lang },
+            filter,
             page,
             limit,
-            { createdAt: 1 } // Son güncellenenler önce gelsin
+            { createdAt: 1 } // Oluşturulma tarihine göre sırala
         );
 
-        res.status(200).send(successResponse('Categories retrieved successfully.', { categories: data, pagination }, 200));
+        const message = isMainCategory
+            ? 'Main categories retrieved successfully.'
+            : 'Subcategories retrieved successfully.';
+
+        res.status(200).send(successResponse(message, { categories: data, pagination }, 200));
     } catch (error) {
         res.status(500).send(errorResponse(error.toString(), 500));
     }
 });
+
 
 // **Tek Bir Kategoriyi Getirme**
 router.get('/categories/:id', auth, async (req, res) => {
