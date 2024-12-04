@@ -149,7 +149,6 @@ router.get('/categories', auth, async (req, res) => {
     }
 });
 
-
 // **Tek Bir Kategoriyi Getirme**
 router.get('/categories/:id', auth, async (req, res) => {
     try {
