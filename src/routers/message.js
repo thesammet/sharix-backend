@@ -97,7 +97,7 @@ router.post("/message/generate", auth, async (req, res) => {
         }
 
         const response = await client.chat.completions.create({
-            model: "gpt-4",
+            model: "gpt-4o",
             messages: [
                 {
                     role: "system",
@@ -172,7 +172,7 @@ router.post("/message/random", auth, async (req, res) => {
     try {
         const instruction = `Generate a random message. Only provide the rewritten message content without any additional explanation, context, or subject.`;
         const response = await client.chat.completions.create({
-            model: "gpt-4-turbo",
+            model: "gpt-4o",
             messages: [{ role: "user", content: instruction }],
             max_tokens: 100,
             temperature: 0.7,

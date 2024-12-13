@@ -8,10 +8,10 @@ const { successResponse, errorResponse } = require('../utils/response');
 // Create a new background
 router.post('/backgrounds', auth, async (req, res) => {
     try {
-        const { name, imageUrl, categoryId, isPremium } = req.body;
+        const { imageUrl, categoryId, isPremium } = req.body;
 
-        if (!name || !imageUrl || !categoryId) {
-            return res.status(400).json(errorResponse('Name, imageUrl, and categoryId are required.', 400));
+        if (!imageUrl || !categoryId) {
+            return res.status(400).json(errorResponse('ImageUrl, and categoryId are required.', 400));
         }
 
         const category = await BackgroundCategory.findById(categoryId);
@@ -20,7 +20,6 @@ router.post('/backgrounds', auth, async (req, res) => {
         }
 
         const background = new Background({
-            name,
             imageUrl,
             category: categoryId,
             isPremium: isPremium || false,
@@ -107,7 +106,7 @@ router.get('/backgrounds/:id', async (req, res) => {
 router.patch('/backgrounds/:id', auth, async (req, res) => {
     try {
         const { id } = req.params;
-        const { categoryId, isPremium, name, imageUrl } = req.body;
+        const { categoryId, isPremium, imageUrl } = req.body;
 
         const updates = {};
         if (categoryId) {
@@ -118,7 +117,6 @@ router.patch('/backgrounds/:id', auth, async (req, res) => {
             updates.category = categoryId;
         }
         if (typeof isPremium === 'boolean') updates.isPremium = isPremium;
-        if (name) updates.name = name;
         if (imageUrl) updates.imageUrl = imageUrl;
 
         const background = await Background.findById(id);
@@ -166,7 +164,6 @@ router.post('/backgrounds/bulk', auth, async (req, res) => {
         }
 
         const bulkBackgrounds = backgrounds.map(background => ({
-            name: background.name,
             imageUrl: background.imageUrl,
             isPremium: background.isPremium || false,
             category: categoryId,

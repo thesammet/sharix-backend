@@ -40,7 +40,6 @@ const categorySchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
-        enum: ['en', 'tr', 'es', 'de', 'fr'], // Geçerli diller
         default: 'en', // Varsayılan dil
     },
     createdBy: {
