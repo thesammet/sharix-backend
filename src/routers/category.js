@@ -207,15 +207,18 @@ router.delete('/categories/:id', auth, async (req, res) => {
             return res.status(404).send(errorResponse('Category not found.', 404));
         }
 
-        // Silinen kategorinin alt kategorilerinin parentCategory'sini null yap
-        await Category.updateMany({ parentCategory: req.params.id }, { parentCategory: null });
+        // Alt kategorileri sil
+        await Category.deleteMany({ parentCategory: req.params.id });
 
+        // Kategoriyi sil
         await category.remove();
-        res.status(200).send(successResponse('Category deleted successfully.', category, 200));
+
+        res.status(200).send(successResponse('Category and its subcategories deleted successfully.', category, 200));
     } catch (error) {
         res.status(400).send(errorResponse(error.toString(), 400));
     }
 });
+
 
 // **Belirli Bir Kategorinin Alt Kategorilerini Listeleme (Sayfalı)**
 router.get('/categories/:id/subcategories', auth, async (req, res) => {
