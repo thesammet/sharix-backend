@@ -70,13 +70,15 @@ router.get('/templates', auth, async (req, res) => {
             Template,
             { isGlobal: true, lang },
             parseInt(page),
-            parseInt(limit)
+            parseInt(limit),
+            { sort: { shareCount: -1 } } // Share count'e göre azalan sırada sıralama
         );
         res.status(200).send(successResponse('Templates retrieved successfully.', { templates: data, pagination }, 200));
     } catch (error) {
         res.status(500).send(errorResponse(error.message, 500));
     }
 });
+
 
 // **Admin Şablonları Listeleme**
 router.get('/templates/admin', auth, async (req, res) => {
