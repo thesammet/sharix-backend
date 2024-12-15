@@ -69,7 +69,7 @@ router.get('/templates', auth, async (req, res) => {
         const pageInt = parseInt(page);
         const limitInt = parseInt(limit);
 
-        // shareCount > 0 olanlar shareCount'a göre azalan sırada
+        // shareCount > 0 olanlar için tüm verileri al
         const queryPositive = {
             isGlobal: true,
             lang,
@@ -77,15 +77,13 @@ router.get('/templates', auth, async (req, res) => {
             shareCount: { $gt: 0 }
         };
 
-        const { data: dataPositive, pagination: paginationPositive } = await paginate(
-            Template,
-            queryPositive,
-            pageInt,
-            limitInt,
-            { shareCount: -1 }
-        );
+        const positiveDocs = await Template.find(queryPositive)
+            .sort({ shareCount: -1 })
+            .populate('category', 'name')
+            .lean()
+            .exec();
 
-        // shareCount = 0 olanları çek
+        // shareCount = 0 olanları al
         const queryZero = {
             isGlobal: true,
             lang,
@@ -98,22 +96,24 @@ router.get('/templates', auth, async (req, res) => {
             .lean()
             .exec();
 
-        // Bellekte sıfır shareCount olanları rastgele sırala
+        // 0 shareCount olanları karıştır
         const shuffledZeroDocs = zeroDocs.sort(() => Math.random() - 0.5);
 
-        // İki listeyi birleştir (önce >0 olanlar, sonra 0 olanlar)
-        const combined = [...dataPositive, ...shuffledZeroDocs];
+        // Listeleri birleştir (önce >0 olanlar, sonra 0 olanlar)
+        const combined = [...positiveDocs, ...shuffledZeroDocs];
 
-        // Manuel sayfalama
+        // Manuel sayfalama yap
+        const total = combined.length;
+        const totalPages = Math.ceil(total / limitInt);
         const startIndex = (pageInt - 1) * limitInt;
         const endIndex = startIndex + limitInt;
         const pagedData = combined.slice(startIndex, endIndex);
 
         const pagination = {
-            total: combined.length,
+            total,
             page: pageInt,
             limit: limitInt,
-            totalPages: Math.ceil(combined.length / limitInt)
+            totalPages
         };
 
         res.status(200).send(
@@ -128,6 +128,7 @@ router.get('/templates', auth, async (req, res) => {
         res.status(500).send(errorResponse(error.message, 500));
     }
 });
+
 
 // **Admin Şablonları Listeleme**
 router.get('/templates/admin', auth, async (req, res) => {
