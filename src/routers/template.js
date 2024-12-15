@@ -79,6 +79,7 @@ router.get('/templates', auth, async (req, res) => {
             query,
             parseInt(page),
             parseInt(limit),
+            sort // Doğru formatta sort parametresini geçir
         );
 
         res.status(200).send(
