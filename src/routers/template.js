@@ -93,7 +93,10 @@ router.get('/templates', auth, async (req, res) => {
             shareCount: 0
         };
 
-        const zeroDocs = await Template.find(queryZero).lean().exec();
+        const zeroDocs = await Template.find(queryZero)
+            .populate('category', 'name')
+            .lean()
+            .exec();
 
         // Bellekte sıfır shareCount olanları rastgele sırala
         const shuffledZeroDocs = zeroDocs.sort(() => Math.random() - 0.5);
@@ -125,8 +128,6 @@ router.get('/templates', auth, async (req, res) => {
         res.status(500).send(errorResponse(error.message, 500));
     }
 });
-
-
 
 // **Admin Şablonları Listeleme**
 router.get('/templates/admin', auth, async (req, res) => {
