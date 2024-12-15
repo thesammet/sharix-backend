@@ -66,26 +66,57 @@ router.get('/templates', auth, async (req, res) => {
     const { page = 1, limit = 10, lang = 'en' } = req.query;
 
     try {
-        const query = {
+        const pageInt = parseInt(page);
+        const limitInt = parseInt(limit);
+
+        // shareCount > 0 olanlar shareCount'a göre azalan sırada
+        const queryPositive = {
             isGlobal: true,
             lang,
-            category: { $ne: "675ee12dd69169335e7704b2" } // Bu categoryId dışındaki şablonları al
+            category: { $ne: "675ee12dd69169335e7704b2" },
+            shareCount: { $gt: 0 }
         };
 
-        const sort = { shareCount: -1 }; // Sort parametresini obje olarak tanımla
-
-        const { data, pagination } = await paginate(
+        const { data: dataPositive, pagination: paginationPositive } = await paginate(
             Template,
-            query,
-            parseInt(page),
-            parseInt(limit),
-            sort // Doğru formatta sort parametresini geçir
+            queryPositive,
+            pageInt,
+            limitInt,
+            { shareCount: -1 }
         );
+
+        // shareCount = 0 olanları çek
+        const queryZero = {
+            isGlobal: true,
+            lang,
+            category: { $ne: "675ee12dd69169335e7704b2" },
+            shareCount: 0
+        };
+
+        const zeroDocs = await Template.find(queryZero).lean().exec();
+
+        // Bellekte sıfır shareCount olanları rastgele sırala
+        const shuffledZeroDocs = zeroDocs.sort(() => Math.random() - 0.5);
+
+        // İki listeyi birleştir (önce >0 olanlar, sonra 0 olanlar)
+        const combined = [...dataPositive, ...shuffledZeroDocs];
+
+        // Manuel sayfalama
+        const startIndex = (pageInt - 1) * limitInt;
+        const endIndex = startIndex + limitInt;
+        const pagedData = combined.slice(startIndex, endIndex);
+
+        const pagination = {
+            total: combined.length,
+            page: pageInt,
+            limit: limitInt,
+            totalPages: Math.ceil(combined.length / limitInt)
+        };
 
         res.status(200).send(
             successResponse(
                 'Templates retrieved successfully.',
-                { templates: data, pagination },
+                { templates: pagedData, pagination },
                 200
             )
         );
@@ -94,6 +125,7 @@ router.get('/templates', auth, async (req, res) => {
         res.status(500).send(errorResponse(error.message, 500));
     }
 });
+
 
 
 // **Admin Şablonları Listeleme**
