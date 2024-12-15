@@ -69,15 +69,17 @@ router.get('/templates', auth, async (req, res) => {
         const query = {
             isGlobal: true,
             lang,
-            categoryId: { $ne: "675ee12dd69169335e7704b2" } // Bu categoryId dışındaki şablonları al
+            category: { $ne: "675ee12dd69169335e7704b2" } // Bu categoryId dışındaki şablonları al
         };
+
+        const sort = { shareCount: -1 }; // Sort parametresini obje olarak tanımla
 
         const { data, pagination } = await paginate(
             Template,
             query,
             parseInt(page),
             parseInt(limit),
-            { sort: { shareCount: -1 } } // ShareCount'e göre azalan sıralama
+            sort // Doğru formatta sort parametresini geçir
         );
 
         res.status(200).send(
@@ -88,6 +90,7 @@ router.get('/templates', auth, async (req, res) => {
             )
         );
     } catch (error) {
+        console.error('Error fetching templates:', error.message);
         res.status(500).send(errorResponse(error.message, 500));
     }
 });
