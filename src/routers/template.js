@@ -79,7 +79,6 @@ router.get('/templates', auth, async (req, res) => {
             query,
             parseInt(page),
             parseInt(limit),
-            sort // Doğru formatta sort parametresini geçir
         );
 
         res.status(200).send(
@@ -144,7 +143,7 @@ router.get('/templates/category/:categoryId', auth, async (req, res) => {
         );
 
         if (!data || data.length === 0) {
-            return res.status(404).send(errorResponse('No templates found for this category.', 404));
+            res.status(200).send(successResponse('Templates retrieved successfully.', { templates: [], pagination }, 200));
         }
         res.status(200).send(successResponse('Templates retrieved successfully.', { templates: data, pagination }, 200));
     } catch (error) {
