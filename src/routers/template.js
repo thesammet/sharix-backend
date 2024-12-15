@@ -66,14 +66,27 @@ router.get('/templates', auth, async (req, res) => {
     const { page = 1, limit = 10, lang = 'en' } = req.query;
 
     try {
+        const query = {
+            isGlobal: true,
+            lang,
+            categoryId: { $ne: "675ee12dd69169335e7704b2" } // Bu categoryId dışındaki şablonları al
+        };
+
         const { data, pagination } = await paginate(
             Template,
-            { isGlobal: true, lang },
+            query,
             parseInt(page),
             parseInt(limit),
-            { sort: { shareCount: -1 } } // Share count'e göre azalan sırada sıralama
+            { sort: { shareCount: -1 } } // ShareCount'e göre azalan sıralama
         );
-        res.status(200).send(successResponse('Templates retrieved successfully.', { templates: data, pagination }, 200));
+
+        res.status(200).send(
+            successResponse(
+                'Templates retrieved successfully.',
+                { templates: data, pagination },
+                200
+            )
+        );
     } catch (error) {
         res.status(500).send(errorResponse(error.message, 500));
     }
