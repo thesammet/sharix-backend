@@ -28,7 +28,7 @@ const paginate = async (model, query, page, limit, sort = { updatedAt: -1 }) => 
 
 // **Şablon Oluşturma**
 router.post('/templates', auth, async (req, res) => {
-    const { content, category, backgroundImage, fontStyle, fontName, fontSize, textAlign, verticalAlign, textColor, isGlobal, lang } = req.body;
+    const { content, category, backgroundImage, fontStyle, fontName, fontSize, textAlign, verticalAlign, textColor, isGlobal, lang, isCustom = false } = req.body;
 
     try {
         if (category) {
@@ -50,7 +50,7 @@ router.post('/templates', auth, async (req, res) => {
             verticalAlign,
             textColor,
             isGlobal,
-            isCustom: false,
+            isCustom,
             lang,
         });
 
