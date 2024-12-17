@@ -53,12 +53,20 @@ router.post('/background-categories/bulk', async (req, res) => {
 // Tüm kategorileri getir
 router.get('/background-categories', async (req, res) => {
     try {
-        const categories = await BackgroundCategory.find();
-        res.status(200).json(successResponse('Background categories retrieved successfully.', categories, 200));
+        const categories = await BackgroundCategory.find({
+            _id: { $ne: '6761d6fffa928c667699b102' } // Bu ID hariç tutulacak
+        });
+
+        res.status(200).json(successResponse(
+            'Background categories retrieved successfully.',
+            categories,
+            200
+        ));
     } catch (error) {
         res.status(400).json(errorResponse(error.message, 400));
     }
 });
+
 
 // Belirli bir kategoriyi getir
 router.get('/background-categories/:id', async (req, res) => {
