@@ -93,7 +93,7 @@ router.delete('/user/me', auth, async (req, res) => {
     }
 });
 
-router.delete('/user', auth, async (req, res) => {
+router.delete('/user', async (req, res) => {
     try {
         const username = req.query.username;
 
