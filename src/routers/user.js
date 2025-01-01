@@ -93,6 +93,26 @@ router.delete('/user/me', auth, async (req, res) => {
     }
 });
 
+router.delete('/user/:username', auth, async (req, res) => {
+    try {
+        const username = req.params.username;
+
+        // Veritabanında kullanıcıyı bul
+        const user = await User.findOne({ username });
+
+        if (!user) {
+            return res.status(404).send(errorResponse('User not found.', 404));
+        }
+
+        // Kullanıcıyı sil
+        await user.remove();
+        res.status(200).send(successResponse('User deleted successfully.', { user }, 200));
+    } catch (error) {
+        res.status(500).send(errorResponse(error.toString(), 500));
+    }
+});
+
+
 
 router.post('/user/purchase-credits-v3', auth, async (req, res) => {
     try {
