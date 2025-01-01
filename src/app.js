@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors');
 require('../src/db/mongoose')
 const userRouter = require('../src/routers/user')
 const categoryRouter = require('../src/routers/category')
@@ -9,6 +10,7 @@ const backgroundCategory = require('../src/routers/background_category');
 
 const app = express()
 
+app.use(cors());
 app.use(express.json())
 app.use(userRouter)
 app.use(categoryRouter)
