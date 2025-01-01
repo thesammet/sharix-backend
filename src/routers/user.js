@@ -93,13 +93,9 @@ router.delete('/user/me', auth, async (req, res) => {
     }
 });
 
-router.delete('/user/grant-free-credit', auth, async (req, res) => {
+router.delete('/user', auth, async (req, res) => {
     try {
-        const username = req.query.username; // Query parametreden username alınıyor
-
-        if (!username) {
-            return res.status(400).send(errorResponse('Username query parameter is required.', 400));
-        }
+        const username = req.query.username;
 
         // Veritabanında kullanıcıyı bul
         const user = await User.findOne({ username });
@@ -115,6 +111,8 @@ router.delete('/user/grant-free-credit', auth, async (req, res) => {
         res.status(500).send(errorResponse(error.toString(), 500));
     }
 });
+
+
 
 router.post('/user/purchase-credits-v3', auth, async (req, res) => {
     try {
